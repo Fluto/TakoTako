@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>com.fluto.taikomods</AssemblyName>
+    <Description>Cool Taiko mods</Description>
+    <Version>0.0.1</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>TaikoMods</RootNamespace>
+    <PackageId>com.fluto.taikomods</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.*" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
+    <PackageReference Include="UnityEngine.Modules" Version="2020.3.19" IncludeAssets="compile" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp, Version=1.0.2.22379, Culture=neutral, PublicKeyToken=null">
+      <HintPath>D:\XboxGames\T Tablet\Content\Taiko no Tatsujin_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="PostBuildCopy" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="D:\XboxGames\T Tablet\Content\BepInEx\plugins" Condition="Exists('D:\XboxGames\T Tablet\Content\BepInEx\plugins')" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

@@ -222,46 +222,43 @@ public class MusicPatch
 
         for (int i = 0; i < customSongs.Count; i++)
         {
-            if (!customSongs[i].debug || !(customSongs[i].id != "kakunin"))
-            {
-                musicInfoAccessors.Add(new MusicDataInterface.MusicInfoAccesser(customSongs[i].uniqueId, customSongs[i].id, customSongs[i].songFileName, customSongs[i].order, customSongs[i].genreNo,
-                    customSongs[i].isDLC, customSongs[i].debug, customSongs[i].price, customSongs[i].isCap, customSongs[i].rankmatchNeedHasPlayer, new bool[5]
-                    {
-                        customSongs[i].branchEasy,
-                        customSongs[i].branchNormal,
-                        customSongs[i].branchHard,
-                        customSongs[i].branchMania,
-                        customSongs[i].branchUra
-                    }, new int[5]
-                    {
-                        customSongs[i].starEasy,
-                        customSongs[i].starNormal,
-                        customSongs[i].starHard,
-                        customSongs[i].starMania,
-                        customSongs[i].starUra
-                    }, new int[5]
-                    {
-                        customSongs[i].shinutiEasy,
-                        customSongs[i].shinutiNormal,
-                        customSongs[i].shinutiHard,
-                        customSongs[i].shinutiMania,
-                        customSongs[i].shinutiUra
-                    }, new int[5]
-                    {
-                        customSongs[i].shinutiEasyDuet,
-                        customSongs[i].shinutiNormalDuet,
-                        customSongs[i].shinutiHardDuet,
-                        customSongs[i].shinutiManiaDuet,
-                        customSongs[i].shinutiUraDuet
-                    }, new int[5]
-                    {
-                        customSongs[i].scoreEasy,
-                        customSongs[i].scoreNormal,
-                        customSongs[i].scoreHard,
-                        customSongs[i].scoreMania,
-                        customSongs[i].scoreUra
-                    }));
-            }
+            musicInfoAccessors.Add(new MusicDataInterface.MusicInfoAccesser(customSongs[i].uniqueId, customSongs[i].id, $"song_{customSongs[i].id}", customSongs[i].order, customSongs[i].genreNo,
+                true, false, 0, false, 0, new bool[5]
+                {
+                    customSongs[i].branchEasy,
+                    customSongs[i].branchNormal,
+                    customSongs[i].branchHard,
+                    customSongs[i].branchMania,
+                    customSongs[i].branchUra
+                }, new int[5]
+                {
+                    customSongs[i].starEasy,
+                    customSongs[i].starNormal,
+                    customSongs[i].starHard,
+                    customSongs[i].starMania,
+                    customSongs[i].starUra
+                }, new int[5]
+                {
+                    customSongs[i].shinutiEasy,
+                    customSongs[i].shinutiNormal,
+                    customSongs[i].shinutiHard,
+                    customSongs[i].shinutiMania,
+                    customSongs[i].shinutiUra
+                }, new int[5]
+                {
+                    customSongs[i].shinutiEasyDuet,
+                    customSongs[i].shinutiNormalDuet,
+                    customSongs[i].shinutiHardDuet,
+                    customSongs[i].shinutiManiaDuet, 
+                    customSongs[i].shinutiUraDuet
+                }, new int[5]
+                {
+                    customSongs[i].scoreEasy,
+                    customSongs[i].scoreNormal,
+                    customSongs[i].scoreHard,
+                    customSongs[i].scoreMania,
+                    customSongs[i].scoreUra
+                }));
         }
 
         #endregion
@@ -845,7 +842,7 @@ public class MusicPatch
 
     #region Read Fumen
 
-    private static readonly Regex fumenFilePathRegex = new Regex("(?<songID>.*?)_(?<difficulty>[ehmn])(?<songIndex>_[12])?.bin");
+    private static readonly Regex fumenFilePathRegex = new Regex("(?<songID>.*?)_(?<difficulty>[ehmnx])(?<songIndex>_[12])?.bin");
 
     private static readonly Dictionary<object, IntPtr> playerToFumenData = new Dictionary<object, IntPtr>();
 
@@ -1060,14 +1057,8 @@ public class MusicPatch
         // Song Details
         [DataMember] public int uniqueId;
         [DataMember] public string id;
-        [DataMember] public string songFileName;
         [DataMember] public int order;
         [DataMember] public int genreNo;
-        [DataMember] public bool isDLC;
-        [DataMember] public bool debug;
-        [DataMember] public int price;
-        [DataMember] public bool isCap;
-        [DataMember] public int rankmatchNeedHasPlayer;
         [DataMember] public bool branchEasy;
         [DataMember] public bool branchNormal;
         [DataMember] public bool branchHard;
@@ -1122,11 +1113,6 @@ public class MusicPatch
         /// </example>
         /// </summary>
         [DataMember] public TextEntry songDetail;
-
-        /// <summary>
-        /// What font to use for this titles font
-        /// </summary>
-        [DataMember] public int songFontType;
     }
 
     [Serializable]

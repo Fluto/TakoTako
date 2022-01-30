@@ -3,12 +3,13 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>com.fluto.taikomods</AssemblyName>
-    <Description>Cool Taiko mods</Description>
+    <Description>Fixes Taiko issues and allows custom songs</Description>
     <Version>0.0.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RootNamespace>TaikoMods</RootNamespace>
     <PackageId>com.fluto.taikomods</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +26,9 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=1.0.2.22379, Culture=neutral, PublicKeyToken=null">
       <HintPath>D:\XboxGames\T Tablet\Content\Taiko no Tatsujin_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>D:\XboxGames\T Tablet\Content\Taiko no Tatsujin_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
   </ItemGroup>
 

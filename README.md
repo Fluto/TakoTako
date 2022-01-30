@@ -62,14 +62,8 @@ data.json Format
   // Music Info
   int uniqueId; (This has to be a unique int, the mod will handle clashes, but it's best to generate a random int)
   string id; (This is the MUSIC_ID, this also has to be unique, because it's the same as the folder structure this file is in)
-  string songFileName; (This is "song_[MUSIC_ID]", might remove this as it's redundant)
   int order; (default sorting order)
   int genreNo; (Genre enum [Pops 0, Anime 1, Vocalo 2, Variety 3, Children 4, Classic 5, Game 6, Namco 7])
-  bool isDLC; (should be set true)
-  bool debug; (???)
-  int price; (set to 0 )
-  bool isCap; (set to false)
-  int rankmatchNeedHasPlayer; (??? set to 0)
   bool branchEasy; (does this difficulty have a branch?, this will need to align with the fumen files)
   bool branchNormal; (does this difficulty have a branch?, this will need to align with the fumen files)
   bool branchHard; (does this difficulty have a branch?, this will need to align with the fumen files)
@@ -79,7 +73,7 @@ data.json Format
   int starNormal; (star difficulty)
   int starHard; (star difficulty)
   int starMania; (star difficulty)
-  int starUra; (star difficulty)
+  int starUra; (star difficulty, set to 0 for unused)
   int shinutiEasy; 
   int shinutiNormal;
   int shinutiHard;

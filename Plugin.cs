@@ -15,6 +15,7 @@ namespace TaikoMods
         public ConfigEntry<bool> ConfigSkipSplashScreen;
         public ConfigEntry<bool> ConfigDisableScreenChangeOnFocus;
         public ConfigEntry<bool> ConfigFixSignInScreen;
+        public ConfigEntry<bool> ConfigRandomSongSelectSkip;
         public ConfigEntry<bool> ConfigEnableCustomSongs;
         public ConfigEntry<string> ConfigSongDirectory;
         public ConfigEntry<string> ConfigSaveDirectory;
@@ -54,6 +55,11 @@ namespace TaikoMods
                 false,
                 "When focusing this wont do anything jank, I thnk");
             
+            this.ConfigRandomSongSelectSkip = Config.Bind("General",
+                "RandomSongSelectSkip",
+                true,
+                "When true, the game will not proceed to the song screen when selecting a random song, instead letting you re-roll");
+            
             ConfigEnableCustomSongs = Config.Bind("CustomSongs",
                 "EnableCustomSongs",
                 true,
@@ -83,6 +89,9 @@ namespace TaikoMods
             
             if (ConfigDisableScreenChangeOnFocus.Value)
                 _harmony.PatchAll(typeof(DisableScreenChangeOnFocus));
+            
+            if (ConfigRandomSongSelectSkip.Value)
+                _harmony.PatchAll(typeof(RandomSongSelectPatch));
             
             if (ConfigEnableCustomSongs.Value)
             {

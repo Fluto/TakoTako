@@ -6,6 +6,7 @@ Currently has the features:
 - Skips splash screen
 - Disable fullscreen on application focus
 - Allows custom tracks to be loaded into the game
+- Keeps the game from opening the course menu when selecting a random song, so you can reroll instantly
 
 ----
 ## Installation

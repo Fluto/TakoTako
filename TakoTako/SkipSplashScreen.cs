@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
 
-namespace TaikoMods;
+namespace TakoTako;
 
 [HarmonyPatch]
 [SuppressMessage("ReSharper", "InconsistentNaming")]

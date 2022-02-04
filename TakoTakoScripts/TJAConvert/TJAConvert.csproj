@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net48</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <PublishSingleFile>true</PublishSingleFile>
+        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Folder Include="References" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="SonicAudioLib, Version=1.0.11.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>References\SonicAudioLib.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Costura.Fody" Version="5.7.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Fody" Version="6.6.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="NAudio.Core" Version="2.0.0" />
+        <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="VGAudio" Version="2.2.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TakoTako.Common\TakoTako.Common.csproj" />
+    </ItemGroup>
+
+    <Target Name="PostBuildCopy" AfterTargets="PostBuildEvent">
+        <Copy SourceFiles="$(TargetDir)TJAConvert.exe" DestinationFolder="$(ProjectDir)\..\..\TakoTako\Executables" SkipUnchangedFiles="true" />
+    </Target>
+</Project>

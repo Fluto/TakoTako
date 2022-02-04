@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 
-namespace TaikoMods;
+namespace TakoTako;
 
 [HarmonyPatch]
 public class DisableScreenChangeOnFocus

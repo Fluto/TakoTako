@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using BepInEx.Logging;
 using HarmonyLib;
 using Newtonsoft.Json;
+using TaikoMods;
 using TakoTako.Common;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -372,24 +373,32 @@ public class MusicPatch
                     song.genreNo = 7;
             }
 
-            var instanceId = Guid.NewGuid().ToString();
+            if (isTjaSong)
+            {
+                song.id = song.songName?.text + song.songSubtitle?.text + song.songDetail?.text;
+                if (string.IsNullOrEmpty(song.id))
+                    throw new Exception($"Song at {directory} does not have name, subtitle or detail text");
+
+                song.id += song.fumenOffsetPos + song.previewPos;
+            }
+
             song.SongName = song.id;
             song.FolderPath = directory;
-            song.id = instanceId;
 
-            if (uniqueIdToSong.ContainsKey(song.uniqueId) || (song.uniqueId >= 0 && song.uniqueId <= SaveDataMax))
+            // Clip off the last bit of the hash to make sure that the number is positive. This will lead to more collisions, but we should be fine.
+            song.uniqueId = (int)(MurmurHash2.Hash(song.id) & 0xFFFF_FFF);
+            if (song.uniqueId <= SaveDataMax)
+                song.uniqueId += SaveDataMax;
+
+            if (uniqueIdToSong.ContainsKey(song.uniqueId))
             {
-                var uniqueIdTest = unchecked(song.id.GetHashCode() + song.previewPos + song.fumenOffsetPos);
-                while (uniqueIdToSong.ContainsKey(uniqueIdTest) || (uniqueIdTest >= 0 && uniqueIdTest <= SaveDataMax))
-                    uniqueIdTest = unchecked((uniqueIdTest + 1) * (uniqueIdTest + 1));
-
-                song.uniqueId = uniqueIdTest;
+                throw new Exception($"Song \"{song.id}\" has collision with \"{uniqueIdToSong[song.uniqueId].id}\", bailing out...");
             }
 
             customSongsList.Add(song);
             idToSong[song.id] = song;
             uniqueIdToSong[song.uniqueId] = song;
-            Log.LogInfo($"Added {(isTjaSong ? "TJA" : "")} Song {song.songName.text}");
+            Log.LogInfo($"Added{(isTjaSong ? " TJA" : "")} Song {song.songName.text}({song.uniqueId})");
         }
     }
 
@@ -456,10 +465,10 @@ public class MusicPatch
                     $"song_{song.id}",
                     song.order,
                     song.genreNo,
-                    !Plugin.Instance.ConfigDisableCustomDLCSongs.Value,
+                    true, // We always want to mark songs as DLC, otherwise ranked games will be broken as you are gonna match songs that other people don't have
                     false,
                     0, false,
-                    0,
+                    2, // Always mark custom songs as "both players need to have this song to play it"
                     new[]
                     {
                         song.branchEasy,
@@ -1285,83 +1294,6 @@ public class MusicPatch
             return true;
         }
 #pragma warning restore Harmony003
-    }
-
-    /// <summary>
-    /// Allow for a song id less than 0
-    /// </summary>
-    [HarmonyPatch(typeof(EnsoDataManager), "DecideSetting")]
-    [HarmonyPrefix]
-    public static bool DecideSetting_Prefix(EnsoDataManager __instance)
-    {
-        var ensoSettings = (EnsoData.Settings) typeof(EnsoDataManager).GetField("ensoSettings", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance);
-        // if (ensoSettings.musicuid.Length <= 0)
-        // {
-        // 	MusicDataInterface.MusicInfoAccesser infoByUniqueId = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.GetInfoByUniqueId(ensoSettings.musicUniqueId);
-        // 	if (infoByUniqueId != null)
-        // 	{
-        // 		ensoSettings.musicuid = infoByUniqueId.Id;
-        // 	}
-        // }
-        // else if (ensoSettings.musicUniqueId <= DataConst.InvalidId)
-        // {
-        // 	MusicDataInterface.MusicInfoAccesser infoById = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.GetInfoById(ensoSettings.musicuid);
-        // 	if (infoById != null)
-        // 	{
-        // 		ensoSettings.musicUniqueId = infoById.UniqueId;
-        // 	}
-        // }
-        if (ensoSettings.musicuid.Length <= 0 /* || ensoSettings.musicUniqueId <= DataConst.InvalidId*/)
-        {
-            List<MusicDataInterface.MusicInfoAccesser> musicInfoAccessers = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.musicInfoAccessers;
-            for (int i = 0; i < musicInfoAccessers.Count; i++)
-            {
-                if (!musicInfoAccessers[i].Debug)
-                {
-                    ensoSettings.musicuid = musicInfoAccessers[i].Id;
-                    ensoSettings.musicUniqueId = musicInfoAccessers[i].UniqueId;
-                }
-            }
-        }
-
-        MusicDataInterface.MusicInfoAccesser infoByUniqueId2 = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.GetInfoByUniqueId(ensoSettings.musicUniqueId);
-        if (infoByUniqueId2 != null)
-        {
-            ensoSettings.songFilePath = infoByUniqueId2.SongFileName;
-        }
-
-        __instance.DecidePartsSetting();
-        if (ensoSettings.ensoType == EnsoData.EnsoType.Normal)
-        {
-            int num = 0;
-            int dlcType = 2;
-            if (ensoSettings.rankMatchType == EnsoData.RankMatchType.None)
-            {
-                num = ((ensoSettings.playerNum != 1) ? 1 : 0);
-            }
-            else if (ensoSettings.rankMatchType == EnsoData.RankMatchType.RankMatch)
-            {
-                num = 2;
-                ensoSettings.isRandomSelect = false;
-                ensoSettings.isDailyBonus = false;
-            }
-            else
-            {
-                num = 3;
-                ensoSettings.isRandomSelect = false;
-                ensoSettings.isDailyBonus = false;
-            }
-
-            TaikoSingletonMonoBehaviour<CommonObjects>.Instance.CosmosLib._kpiListCommon._musicKpiInfo.SetMusicSortSettings(num, dlcType, ensoSettings.isRandomSelect, ensoSettings.isDailyBonus);
-        }
-        else
-        {
-            ensoSettings.isRandomSelect = false;
-            ensoSettings.isDailyBonus = false;
-        }
-
-        typeof(EnsoDataManager).GetField("ensoSettings", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(__instance, ensoSettings);
-        return false;
     }
 
     #endregion

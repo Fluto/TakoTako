@@ -1,6 +1,6 @@
 # TakoTako
 
-Hey this is a mod for Taiko no Tatsujin: The Drum Master
+This is a mod for Taiko no Tatsujin: The Drum Master\
 Currently has the features:
 - Fixes sign in screen for version 1.1.0.0
 - Skips splash screen
@@ -11,7 +11,7 @@ Currently has the features:
 ----
 ## Installation
 
-To install mods is a bit tricky this time around as we have to take a few more steps to be able to inject files into the game. !(Swigs did a quick video on it here)[https://youtu.be/WDsWDVbtbbI] but if you want to follow along in text read on ahead.
+To install mods is a bit tricky this time around as we have to take a few more steps to be able to inject files into the game. ![Swigs did a quick video on it here](https://youtu.be/WDsWDVbtbbI) but if you want to follow along in text read on ahead.
 
 1. Become an Xbox Insider, to do this open the `Xbox Insider Hub` which you can get from the Microsoft Store if you don't already have it installed. Go to Previews > Windows Gaming, and join it. There should be an update ready for you for the Xbox app, so go ahead and update and relaunch it
 2. In the Xbox App go to Settings > General and enable `Use advanced installation and management features`. Feel free to change your installation directory
@@ -26,7 +26,7 @@ To install mods is a bit tricky this time around as we have to take a few more s
 8. Run Taiko no Tatusjin The Drum Master once, then close it. This will generate some files
 9. Look in your game's folder again, new files will have been generated under `.\BepInEx\plugins`
 10. ![Download my patch](https://github.com/Fluto/TaikoMods/releases)
-11. Paste the .DLL from step 4 into this folder\
+11. Extract the `com.fluto.takotako` folder from the download in step 10 and paste it into the `.\BepInEx\plugins` folder\
 ![](https://github.com/Fluto/TakoTako/blob/main/readme-image-2.png)
 12. And you're done!
 
@@ -113,6 +113,8 @@ data.json Format
   int scoreMania;
   int scoreUra;
 
+  bool areFilesGZipped; (are the music and fumen files gzipped? this saves file space and is done automatically when converting TJAs)
+
   // Song Info
   int previewPos;
   int fumenOffsetPos;
@@ -155,8 +157,12 @@ TextEntry {
 ## Supported Versions
 <details>
 <summary>Supported Versions</summary>
+<p>
 - 1.1.0.0
+</p>
+<p>
 - 1.2.2.0
+</p>
 </details>
 
 ---
@@ -165,6 +171,6 @@ TextEntry {
 
 ---
 ## Credits 
-- !(SuperSonicAudio)[https://github.com/blueskythlikesclouds/SonicAudioTools]
-- !(VGAudio)[https://github.com/Thealexbarney/VGAudio]
+- ![SuperSonicAudio](https://github.com/blueskythlikesclouds/SonicAudioTools)
+- ![VGAudio](https://github.com/Thealexbarney/VGAudio)
 - Pulsar#5356 for the TJA2BIN.exe

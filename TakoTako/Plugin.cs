@@ -61,7 +61,7 @@ namespace TakoTako
 
             ConfigSaveDirectory = Config.Bind("CustomSongs",
                 "SaveDirectory",
-                $"{userFolder}/Documents/TaikoTheDrumMasterMods/saves",
+                $"{userFolder}/Documents/{typeof(Plugin).Namespace}/saves",
                 "The directory where saves are stored");
 
             ConfigDisableCustomDLCSongs = Config.Bind("CustomSongs",

@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using BepInEx.Logging;
 using HarmonyLib;
 using Newtonsoft.Json;
-using TaikoMods;
 using TakoTako.Common;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;

@@ -373,20 +373,21 @@ public class MusicPatch
                     song.genreNo = 7;
             }
 
+            var tempId = song.id;
             if (isTjaSong)
             {
-                song.id = song.songName?.text + song.songSubtitle?.text + song.songDetail?.text;
-                if (string.IsNullOrEmpty(song.id))
+                tempId = song.songName?.text + song.songSubtitle?.text + song.songDetail?.text;
+                if (string.IsNullOrEmpty(tempId))
                     throw new Exception($"Song at {directory} does not have name, subtitle or detail text");
 
-                song.id += song.fumenOffsetPos + song.previewPos;
+                tempId += song.fumenOffsetPos + song.previewPos;
             }
 
             song.SongName = song.id;
             song.FolderPath = directory;
 
             // Clip off the last bit of the hash to make sure that the number is positive. This will lead to more collisions, but we should be fine.
-            song.uniqueId = (int)(MurmurHash2.Hash(song.id) & 0xFFFF_FFF);
+            song.uniqueId = (int)(MurmurHash2.Hash(tempId) & 0xFFFF_FFF);
             if (song.uniqueId <= SaveDataMax)
                 song.uniqueId += SaveDataMax;
 

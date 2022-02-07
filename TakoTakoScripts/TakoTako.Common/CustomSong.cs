@@ -41,6 +41,9 @@ namespace TakoTako.Common
         [DataMember] public int scoreMania;
         [DataMember] public int scoreUra;
 
+        // Used for UID
+        [DataMember] public int tjaFileHash;
+
         // Preview Details
         [DataMember] public int previewPos;
         [DataMember] public int fumenOffsetPos;

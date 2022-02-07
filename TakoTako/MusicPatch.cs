@@ -372,21 +372,24 @@ public class MusicPatch
                     song.genreNo = 7;
             }
 
-            var tempId = song.id;
-            if (isTjaSong)
-            {
-                tempId = song.songName?.text + song.songSubtitle?.text + song.songDetail?.text;
-                if (string.IsNullOrEmpty(tempId))
-                    throw new Exception($"Song at {directory} does not have name, subtitle or detail text");
-
-                tempId += song.fumenOffsetPos + song.previewPos;
-            }
-
             song.SongName = song.id;
             song.FolderPath = directory;
 
             // Clip off the last bit of the hash to make sure that the number is positive. This will lead to more collisions, but we should be fine.
-            song.uniqueId = (int)(MurmurHash2.Hash(tempId) & 0xFFFF_FFF);
+            if (isTjaSong)
+            {
+                // For TJAs, we need to hash the TJA file.
+                song.uniqueId = song.tjaFileHash;
+
+                if (song.uniqueId == 0)
+                    throw new Exception("Converted TJA had no hash.");
+            }
+            else
+            {
+                // For official songs, we can just use the hash of the song internal name.
+                song.uniqueId = (int)(MurmurHash2.Hash(song.id) & 0xFFFF_FFF);
+            }
+
             if (song.uniqueId <= SaveDataMax)
                 song.uniqueId += SaveDataMax;
 

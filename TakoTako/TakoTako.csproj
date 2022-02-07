@@ -18,29 +18,19 @@
     <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
     <PackageReference Include="Costura.Fody" Version="5.7.0">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Fody" Version="6.6.0">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Taiko.GameLibs" Version="1.2.2-r.0" />
     <PackageReference Include="UnityEngine.Modules" Version="2020.3.19" IncludeAssets="compile" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Assembly-CSharp, Version=1.0.2.23102, Culture=neutral, PublicKeyToken=null">
-      <HintPath>D:\XboxGames\T Tablet\Content\Taiko no Tatsujin_Data\Managed\Assembly-CSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>D:\XboxGames\T Tablet\Content\Taiko no Tatsujin_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>References\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="TakoTako.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\TakoTakoScripts\TakoTako.Common\bin\Debug\net48\TakoTako.Common.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -62,6 +52,10 @@
   <ItemGroup>
     <EmbeddedResource Remove="Executables\**" />
     <EmbeddedResource Remove="Exes\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TakoTakoScripts\TakoTako.Common\TakoTako.Common.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuildCopy" AfterTargets="PostBuildEvent">

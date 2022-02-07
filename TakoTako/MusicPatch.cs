@@ -308,7 +308,7 @@ public class MusicPatch
                             File.WriteAllBytes(filePath, compressedMemoryStream.ToArray());
                         }
 
-                        song.AreFilesGZipped = true;
+                        song.areFilesGZipped = true;
                         File.WriteAllText(dataPath, JsonConvert.SerializeObject(song));
 
                         SubmitDirectory(directory, true);
@@ -1424,7 +1424,7 @@ public class MusicPatch
         type.GetField("fumenPath").SetValue(__instance, newPath);
 
         byte[] array = File.ReadAllBytes(newPath);
-        if (songInstance.AreFilesGZipped)
+        if (songInstance.areFilesGZipped)
         {
             using var memoryStream = new MemoryStream(array);
             using var destination = new MemoryStream();
@@ -1585,7 +1585,7 @@ public class MusicPatch
             var newPath = Path.Combine(songInstance.FolderPath, $"{sheetName.Replace(songName, songInstance.SongName)}.bin");
 
             var bytes = File.ReadAllBytes(newPath);
-            if (songInstance.AreFilesGZipped)
+            if (songInstance.areFilesGZipped)
             {
                 using var memoryStream = new MemoryStream(bytes);
                 using var destination = new MemoryStream();
@@ -1658,7 +1658,7 @@ public class MusicPatch
         }
 
         var bytes = File.ReadAllBytes(newPath);
-        if (songInstance.AreFilesGZipped)
+        if (songInstance.areFilesGZipped)
         {
             using var memoryStream = new MemoryStream(bytes);
             using var destination = new MemoryStream();

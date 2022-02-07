@@ -45,7 +45,7 @@ namespace TakoTako.Common
         [DataMember] public int previewPos;
         [DataMember] public int fumenOffsetPos;
 
-        [DataMember] public bool AreFilesGZipped;
+        [DataMember] public bool areFilesGZipped;
 
         // LocalisationDetails
         /// <summary>

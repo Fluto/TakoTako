@@ -128,7 +128,7 @@ public class MusicPatch
                 {
                     var data = GetCustomSaveData();
                     var savePath = SaveFilePath;
-                    var json = JsonConvert.SerializeObject(data);
+                    var json = JsonConvert.SerializeObject((CustomMusicSaveDataBodySerializable) data);
 
                     using Stream fs = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough);
                     using StreamWriter streamWriter = new StreamWriter(fs);
@@ -282,7 +282,7 @@ public class MusicPatch
                     foreach (var item in conversionStatus.Items)
                     {
                         var directory = Path.Combine(musicDirectory, item.FolderName);
-                        var dataPath = Path.Combine(directory, "data.json");
+                        var dataPath = Path.Combine(directory, SongDataFileName);
                         if (!File.Exists(dataPath))
                         {
                             Log.LogError($"Cannot find {dataPath}");
@@ -1699,19 +1699,33 @@ public class MusicPatch
     public class CustomMusicSaveDataBodySerializable
     {
         [JsonProperty("m")] public Dictionary<int, MusicInfoExSerializable> CustomTrackToMusicInfoEx = new();
+
+        [JsonProperty("CustomTrackToMusicInfoEx")]
+        public Dictionary<int, MusicInfoExSerializable> CustomTrackToMusicInfoEx_v0
+        {
+            set => CustomTrackToMusicInfoEx = value;
+        }
+
         [JsonProperty("r")] public Dictionary<int, EnsoRecordInfoSerializable[]> CustomTrackToEnsoRecordInfo = new();
 
+        [JsonProperty("CustomTrackToEnsoRecordInfo")]
+        public Dictionary<int, EnsoRecordInfoSerializable[]> CustomTrackToEnsoRecordInfo_v0
+        {
+            set => CustomTrackToEnsoRecordInfo = value;
+        }
 
         public static explicit operator CustomMusicSaveDataBodySerializable(CustomMusicSaveDataBody m)
         {
             var result = new CustomMusicSaveDataBodySerializable();
             foreach (var musicInfoEx in m.CustomTrackToMusicInfoEx)
                 result.CustomTrackToMusicInfoEx[musicInfoEx.Key] = musicInfoEx.Value;
+
             foreach (var ensoRecord in m.CustomTrackToEnsoRecordInfo)
             {
                 var array = new EnsoRecordInfoSerializable[ensoRecord.Value.Length];
                 for (var i = 0; i < ensoRecord.Value.Length; i++)
                     array[i] = ensoRecord.Value[i];
+
                 result.CustomTrackToEnsoRecordInfo[ensoRecord.Key] = array;
             }
 
@@ -1723,11 +1737,13 @@ public class MusicPatch
             var result = new CustomMusicSaveDataBody();
             foreach (var musicInfoEx in m.CustomTrackToMusicInfoEx)
                 result.CustomTrackToMusicInfoEx[musicInfoEx.Key] = musicInfoEx.Value;
+
             foreach (var ensoRecord in m.CustomTrackToEnsoRecordInfo)
             {
                 var array = new EnsoRecordInfo[ensoRecord.Value.Length];
                 for (var i = 0; i < ensoRecord.Value.Length; i++)
                     array[i] = ensoRecord.Value[i];
+
                 result.CustomTrackToEnsoRecordInfo[ensoRecord.Key] = array;
             }
 
@@ -1753,7 +1769,7 @@ public class MusicPatch
             [JsonProperty("isNew")]
             private bool isNew_v0
             {
-                set => favorite = value;
+                set => isNew = value;
             }
 
             public static implicit operator MusicInfoEx(MusicInfoExSerializable m) => new()

@@ -204,7 +204,6 @@ namespace TJAConvert
             {
                 var musicInfo = new CustomSong
                 {
-                    uniqueId = metadata.Title.GetHashCode(),
                     id = tjaHash.ToString(),
                     order = 0,
                     genreNo = (int) metadata.Genre,

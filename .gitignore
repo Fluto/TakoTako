@@ -396,5 +396,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+.idea
 
 TakoTako/Executables/TJAConvert.exe

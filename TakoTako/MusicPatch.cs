@@ -379,29 +379,29 @@ public class MusicPatch
             if (isTjaSong)
             {
                 // For TJAs, we need to hash the TJA file.
-                song.uniqueId = song.tjaFileHash;
+                song.UniqueId = song.tjaFileHash;
 
-                if (song.uniqueId == 0)
+                if (song.UniqueId == 0)
                     throw new Exception("Converted TJA had no hash.");
             }
             else
             {
                 // For official songs, we can just use the hash of the song internal name.
-                song.uniqueId = (int)(MurmurHash2.Hash(song.id) & 0xFFFF_FFF);
+                song.UniqueId = (int)(MurmurHash2.Hash(song.id) & 0xFFFF_FFF);
             }
 
-            if (song.uniqueId <= SaveDataMax)
-                song.uniqueId += SaveDataMax;
+            if (song.UniqueId <= SaveDataMax)
+                song.UniqueId += SaveDataMax;
 
-            if (uniqueIdToSong.ContainsKey(song.uniqueId))
+            if (uniqueIdToSong.ContainsKey(song.UniqueId))
             {
-                throw new Exception($"Song \"{song.id}\" has collision with \"{uniqueIdToSong[song.uniqueId].id}\", bailing out...");
+                throw new Exception($"Song \"{song.id}\" has collision with \"{uniqueIdToSong[song.UniqueId].id}\", bailing out...");
             }
 
             customSongsList.Add(song);
             idToSong[song.id] = song;
-            uniqueIdToSong[song.uniqueId] = song;
-            Log.LogInfo($"Added{(isTjaSong ? " TJA" : "")} Song {song.songName.text}({song.uniqueId})");
+            uniqueIdToSong[song.UniqueId] = song;
+            Log.LogInfo($"Added{(isTjaSong ? " TJA" : "")} Song {song.songName.text}({song.UniqueId})");
         }
     }
 
@@ -463,7 +463,7 @@ public class MusicPatch
                     continue;
 
                 musicInfoAccessors.Add(new MusicDataInterface.MusicInfoAccesser(
-                    song.uniqueId,
+                    song.UniqueId, // From SongInstance, as we always recalculate it now
                     song.id,
                     $"song_{song.id}",
                     song.order,
@@ -1884,5 +1884,6 @@ public class MusicPatch
     {
         public string FolderPath;
         public string SongName;
+        public int UniqueId;
     }
 }

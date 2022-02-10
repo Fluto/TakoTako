@@ -20,7 +20,6 @@ namespace TakoTako
         public ConfigEntry<string> ConfigSongDirectory;
         public ConfigEntry<bool> ConfigSaveEnabled;
         public ConfigEntry<string> ConfigSaveDirectory;
-        public ConfigEntry<bool> ConfigDisableCustomDLCSongs;
         public ConfigEntry<string> ConfigOverrideDefaultSongLanguage;
         public ConfigEntry<bool> ConfigApplyGenreOverride;
 
@@ -63,12 +62,6 @@ namespace TakoTako
                 "SaveDirectory",
                 $"{userFolder}/Documents/{typeof(Plugin).Namespace}/saves",
                 "The directory where saves are stored");
-
-            ConfigDisableCustomDLCSongs = Config.Bind("CustomSongs",
-                "DisableCustomDLCSongs",
-                false,
-                "By default, DLC is enabled for custom songs, this is to reduce any hiccups when playing online with other people. " +
-                "Set this to true if you want DLC to be marked as false, be aware that the fact you're playing a custom song will be sent over the internet");
 
             ConfigOverrideDefaultSongLanguage = Config.Bind("CustomSongs",
                 "ConfigOverrideDefaultSongLanguage",

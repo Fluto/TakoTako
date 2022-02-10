@@ -11,7 +11,6 @@ namespace TakoTako.Common
     public class CustomSong
     {
         // Song Details
-        [DataMember] public int uniqueId;
         [DataMember] public string id;
         [DataMember] public int order;
         [DataMember] public int genreNo;
@@ -40,6 +39,9 @@ namespace TakoTako.Common
         [DataMember] public int scoreHard;
         [DataMember] public int scoreMania;
         [DataMember] public int scoreUra;
+
+        // Used for UID
+        [DataMember] public int tjaFileHash;
 
         // Preview Details
         [DataMember] public int previewPos;

@@ -99,9 +99,11 @@ namespace TJAConvert
                         Directory.Delete(tempOutDirectory, true);
                     Directory.CreateDirectory(tempOutDirectory);
 
-                    var passed = await TJAToFumens(metadata, tjaPath, tempOutDirectory);
+                    var originalTjaData = File.ReadAllBytes(tjaPath);
+                    var tjaHash = (int)(MurmurHash2.Hash(originalTjaData) & 0xFFFF_FFF);
 
-                    if (passed >= 0) passed = CreateMusicFile(metadata, tempOutDirectory) ? 0 : -1;
+                    var passed = await TJAToFumens(metadata, tjaPath, tjaHash, tempOutDirectory);
+                    if (passed >= 0) passed = CreateMusicFile(metadata, tjaHash, tempOutDirectory) ? 0 : -1;
 
                     var copyFilePath = Path.Combine(newDirectory, Path.GetFileName(originalAudioPath));
                     File.Copy(originalAudioPath, copyFilePath);
@@ -110,10 +112,10 @@ namespace TJAConvert
                     switch (audioExtension.ToLowerInvariant())
                     {
                         case "wav":
-                            if (passed >= 0) passed = WavToACB(copyFilePath, tempOutDirectory) ? 0 : -1;
+                            if (passed >= 0) passed = WavToACB(copyFilePath, tempOutDirectory, tjaHash) ? 0 : -1;
                             break;
                         case "ogg":
-                            if (passed >= 0) passed = OGGToACB(copyFilePath, tempOutDirectory) ? 0 : -1;
+                            if (passed >= 0) passed = OGGToACB(copyFilePath, tempOutDirectory, tjaHash) ? 0 : -1;
                             break;
                         default:
                             Console.WriteLine($"Do not support {audioExtension} audio files");
@@ -196,14 +198,13 @@ namespace TJAConvert
             acbFile.Save(acbPath, bufferSize);
         }
 
-        private static bool CreateMusicFile(TJAMetadata metadata, string outputPath)
+        private static bool CreateMusicFile(TJAMetadata metadata, int tjaHash, string outputPath)
         {
             try
             {
                 var musicInfo = new CustomSong
                 {
-                    uniqueId = metadata.Title.GetHashCode(),
-                    id = metadata.Id,
+                    id = tjaHash.ToString(),
                     order = 0,
                     genreNo = (int) metadata.Genre,
                     branchEasy = false,
@@ -213,6 +214,7 @@ namespace TJAConvert
                     branchUra = false,
                     previewPos = (int) (metadata.PreviewTime * 1000),
                     fumenOffsetPos = (int) (metadata.Offset * 10),
+                    tjaFileHash = tjaHash,
                     songName = new TextEntry()
                     {
                         text = metadata.Title,
@@ -316,7 +318,7 @@ namespace TJAConvert
             }
         }
 
-        private static async Task<int> TJAToFumens(TJAMetadata metadata, string tjaPath, string outputPath)
+        private static async Task<int> TJAToFumens(TJAMetadata metadata, string tjaPath, int tjaHash, string outputPath)
         {
             var fileName = Path.GetFileName(tjaPath);
             var newPath = Path.Combine(outputPath, fileName);
@@ -332,7 +334,7 @@ namespace TJAConvert
             if (metadata.Courses.Any(x => x.CourseType == CourseType.UraOni))
             {
                 // tja2bin doesn't support Ura Oni, so rip it out and change the course type to oni, then rename the final file
-                passed = await ConvertUraOni(metadata, newPath);
+                passed = await ConvertUraOni(metadata, newPath, tjaHash);
                 if (passed < 0)
                     return passed;
                 // for every .bin in this directory, we can now add the prefix _x
@@ -365,7 +367,7 @@ namespace TJAConvert
             {
                 // will need to create additional files to splice them out
 
-                passed = await SpliceDoubles(metadata, newPath);
+                passed = await SpliceDoubles(metadata, newPath, tjaHash);
                 if (passed < 0)
                     return passed;
 
@@ -380,7 +382,7 @@ namespace TJAConvert
             }
 
             if (metadata.Courses.All(x => x.PlayStyle != TJAMetadata.PlayStyle.Double))
-                passed = await Convert(newPath, outputPath);
+                passed = await Convert(newPath, outputPath, tjaHash);
 
             if (passed < 0)
                 return passed;
@@ -395,7 +397,7 @@ namespace TJAConvert
             return passed;
         }
 
-        private static async Task<int> ConvertUraOni(TJAMetadata metadata, string newPath)
+        private static async Task<int> ConvertUraOni(TJAMetadata metadata, string newPath, int tjaHash)
         {
             var directory = Path.GetDirectoryName(newPath);
             var fileName = Path.GetFileNameWithoutExtension(newPath);
@@ -427,7 +429,7 @@ namespace TJAConvert
                     var path = $"{directory}/{fileName}.tja";
                     File.WriteAllLines(path, file);
 
-                    var passed = await Convert(path, directory);
+                    var passed = await Convert(path, directory, tjaHash);
                     if (passed < 0)
                         return passed;
 
@@ -435,7 +437,7 @@ namespace TJAConvert
                 }
                 else
                 {
-                    var passed = await SplitP1P2(lines, course, directory, fileName, CourseType.Oni);
+                    var passed = await SplitP1P2(lines, course, directory, fileName, tjaHash, CourseType.Oni);
                     if (passed < 0)
                         return passed;
                 }
@@ -449,7 +451,7 @@ namespace TJAConvert
         /// <summary>
         /// This aims to separate P1 and P2 tracks for TJA2BIN to read
         /// </summary>
-        private static async Task<int> SpliceDoubles(TJAMetadata metadata, string newPath)
+        private static async Task<int> SpliceDoubles(TJAMetadata metadata, string newPath, int tjaHash)
         {
             var directory = Path.GetDirectoryName(newPath);
             var fileName = Path.GetFileNameWithoutExtension(newPath);
@@ -482,7 +484,7 @@ namespace TJAConvert
             // remove doubles section
             foreach (var course in doubleCourses)
             {
-                var passed = await SplitP1P2(lines, course, directory, fileName);
+                var passed = await SplitP1P2(lines, course, directory, fileName, tjaHash);
                 if (passed < 0)
                     return passed;
             }
@@ -491,7 +493,7 @@ namespace TJAConvert
             return 0;
         }
 
-        private static async Task<int> SplitP1P2(List<string> lines, TJAMetadata.Course course, string directory, string fileName, CourseType? courseTypeOverride = null)
+        private static async Task<int> SplitP1P2(List<string> lines, TJAMetadata.Course course, string directory, string fileName, int tjaHash, CourseType? courseTypeOverride = null)
         {
             // metadata end
             int courseStartIndex = lines.FindLastIndex(x =>
@@ -528,7 +530,7 @@ namespace TJAConvert
             var path = $"{directory}/{fileName}_1.tja";
             File.WriteAllLines(path, p1File);
 
-            var passed = await Convert(path, directory);
+            var passed = await Convert(path, directory, tjaHash);
             if (passed < 0)
                 return passed;
 
@@ -540,7 +542,7 @@ namespace TJAConvert
             path = $"{directory}/{fileName}_2.tja";
             File.WriteAllLines(path, p2File);
 
-            passed = await Convert(path, directory);
+            passed = await Convert(path, directory, tjaHash);
             if (passed < 0)
                 return passed;
 
@@ -558,9 +560,9 @@ namespace TJAConvert
             }
         }
 
-        private static async Task<int> Convert(string tjaPath, string outputPath)
+        private static async Task<int> Convert(string tjaPath, string outputPath, int tjaHash)
         {
-            var fileName = Path.GetFileNameWithoutExtension(tjaPath);
+            var fileName = tjaHash.ToString();
 
             TJAMetadata metadata;
             try
@@ -572,7 +574,7 @@ namespace TJAConvert
                 return -2;
             }
 
-            var newPath = $"{outputPath}\\{Path.GetFileName(tjaPath)}";
+            var newPath = $"{outputPath}\\{fileName}";
             if (metadata.Courses.Count == 1)
             {
                 var coursePostfix = metadata.Courses[0].CourseType.ToShort();
@@ -986,12 +988,11 @@ namespace TJAConvert
             }
         }
 
-        private static bool OGGToACB(string oggPath, string outDirectory)
+        private static bool OGGToACB(string oggPath, string outDirectory, int tjaHash)
         {
             try
             {
                 var directory = Path.GetDirectoryName(oggPath);
-                var fileName = Path.GetFileNameWithoutExtension(oggPath);
                 var acbPath = $"{directory}/{Guid.NewGuid().ToString()}";
                 Directory.CreateDirectory(acbPath);
 
@@ -1006,10 +1007,10 @@ namespace TJAConvert
 
                 File.WriteAllBytes($"{acbPath}/00000.hca", hca);
                 Pack(acbPath);
-                if (File.Exists($"{outDirectory}/song_{fileName}.bin"))
-                    File.Delete($"{outDirectory}/song_{fileName}.bin");
+                if (File.Exists($"{outDirectory}/song_{tjaHash}.bin"))
+                    File.Delete($"{outDirectory}/song_{tjaHash}.bin");
 
-                File.Move($"{acbPath}.acb", $"{outDirectory}/song_{fileName}.bin");
+                File.Move($"{acbPath}.acb", $"{outDirectory}/song_{tjaHash}.bin");
                 Directory.Delete(acbPath, true);
                 return true;
             }
@@ -1020,12 +1021,11 @@ namespace TJAConvert
             }
         }
 
-        private static bool WavToACB(string wavPath, string outDirectory, bool deleteWav = false)
+        private static bool WavToACB(string wavPath, string outDirectory, int tjaHash, bool deleteWav = false)
         {
             try
             {
                 var directory = Path.GetDirectoryName(wavPath);
-                var fileName = Path.GetFileNameWithoutExtension(wavPath);
                 var acbPath = $"{directory}/{Guid.NewGuid().ToString()}";
                 Directory.CreateDirectory(acbPath);
 
@@ -1037,10 +1037,10 @@ namespace TJAConvert
                 var hca = WavToHca(wavPath);
                 File.WriteAllBytes($"{acbPath}/00000.hca", hca);
                 Pack(acbPath);
-                if (File.Exists($"{outDirectory}/song_{fileName}.bin"))
-                    File.Delete($"{outDirectory}/song_{fileName}.bin");
+                if (File.Exists($"{outDirectory}/song_{tjaHash}.bin"))
+                    File.Delete($"{outDirectory}/song_{tjaHash}.bin");
 
-                File.Move($"{acbPath}.acb", $"{outDirectory}/song_{fileName}.bin");
+                File.Move($"{acbPath}.acb", $"{outDirectory}/song_{tjaHash}.bin");
 
                 if (deleteWav)
                     File.Delete(wavPath);

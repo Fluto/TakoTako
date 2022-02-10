@@ -55,7 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TakoTakoScripts\TakoTako.Common\TakoTako.Common.csproj" />
+    <ProjectReference Include="..\TakoTako.Common\TakoTako.Common.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuildCopy" AfterTargets="PostBuildEvent">

@@ -264,47 +264,89 @@ namespace TJAConvert
 
                 foreach (var course in metadata.Courses)
                 {
+                    var isDouble = course.PlayStyle == TJAMetadata.PlayStyle.Double;
+                    var shinuti = EstimateScoreBasedOnNotes(course);
+
                     //todo figure out the best score?
                     switch (course.CourseType)
                     {
                         case CourseType.Easy:
                             musicInfo.starEasy = course.Level;
-                            musicInfo.shinutiEasy = 10170;
-                            musicInfo.shinutiEasyDuet = 10170;
-                            musicInfo.scoreEasy = 360090;
-                            musicInfo.branchEasy = course.IsBranching;
+                            musicInfo.scoreEasy = 1000000;
+                            musicInfo.branchEasy = musicInfo.branchEasy || course.IsBranching;
+                            if (isDouble)
+                                musicInfo.shinutiEasyDuet = shinuti;
+                            else
+                                musicInfo.shinutiEasy = shinuti;
                             break;
                         case CourseType.Normal:
                             musicInfo.starNormal = course.Level;
-                            musicInfo.shinutiNormal = 6010;
-                            musicInfo.shinutiNormalDuet = 6010;
-                            musicInfo.scoreNormal = 650150;
-                            musicInfo.branchNormal = course.IsBranching;
+                            musicInfo.scoreNormal = 1000000;
+                            musicInfo.branchNormal = musicInfo.branchNormal || course.IsBranching;
+                            if (isDouble)
+                                musicInfo.shinutiNormalDuet = shinuti;
+                            else
+                                musicInfo.shinutiNormal = shinuti;
                             break;
                         case CourseType.Hard:
                             musicInfo.starHard = course.Level;
-                            musicInfo.shinutiHard = 3010;
-                            musicInfo.shinutiHardDuet = 3010;
-                            musicInfo.scoreHard = 800210;
-                            musicInfo.branchHard = course.IsBranching;
+                            musicInfo.scoreHard = 1000000;
+                            musicInfo.branchHard = musicInfo.branchHard || course.IsBranching;
+                            if (isDouble)
+                                musicInfo.shinutiHardDuet = shinuti;
+                            else
+                                musicInfo.shinutiHard = shinuti;
                             break;
                         case CourseType.Oni:
                             musicInfo.starMania = course.Level;
-                            musicInfo.shinutiMania = 1000;
-                            musicInfo.shinutiManiaDuet = 1000;
-                            musicInfo.scoreMania = 10000;
-                            musicInfo.branchMania = course.IsBranching;
+                            musicInfo.scoreMania = 1000000;
+                            musicInfo.branchMania = musicInfo.branchMania || course.IsBranching;
+                            if (isDouble)
+                                musicInfo.shinutiManiaDuet = shinuti;
+                            else
+                                musicInfo.shinutiMania = shinuti;
                             break;
                         case CourseType.UraOni:
                             musicInfo.starUra = course.Level;
-                            musicInfo.shinutiUra = 1000;
-                            musicInfo.shinutiUraDuet = 1000;
-                            musicInfo.scoreUra = 10000;
-                            musicInfo.branchUra = course.IsBranching;
+                            musicInfo.scoreUra = 1000000;
+                            musicInfo.branchUra = musicInfo.branchUra || course.IsBranching;
+                            if (isDouble)
+                                musicInfo.shinutiUraDuet = shinuti;
+                            else
+                                musicInfo.shinutiUra = shinuti;
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
+                }
+
+
+                // make sure each course as a score
+                if (musicInfo.shinutiEasy == 0)
+                    musicInfo.shinutiEasy = musicInfo.shinutiEasyDuet != 0 ? musicInfo.shinutiEasyDuet : 7352;
+                if (musicInfo.shinutiNormal == 0)
+                    musicInfo.shinutiNormal = musicInfo.shinutiNormalDuet != 0 ? musicInfo.shinutiNormalDuet : 4830;
+                if (musicInfo.shinutiHard == 0)
+                    musicInfo.shinutiHard = musicInfo.shinutiHardDuet != 0 ? musicInfo.shinutiHardDuet : 3144;
+                if (musicInfo.shinutiMania == 0)
+                    musicInfo.shinutiMania = musicInfo.shinutiManiaDuet != 0 ? musicInfo.shinutiManiaDuet : 2169;
+                if (musicInfo.shinutiUra == 0)
+                    musicInfo.shinutiUra = musicInfo.shinutiUraDuet != 0 ? musicInfo.shinutiUraDuet : 1420;
+
+                if (musicInfo.shinutiEasyDuet == 0)
+                    musicInfo.shinutiEasyDuet = musicInfo.shinutiEasy;
+                if (musicInfo.shinutiNormalDuet == 0)
+                    musicInfo.shinutiNormalDuet = musicInfo.shinutiNormal;
+                if (musicInfo.shinutiHardDuet == 0)
+                    musicInfo.shinutiHardDuet = musicInfo.shinutiHard;
+                if (musicInfo.shinutiManiaDuet == 0)
+                    musicInfo.shinutiManiaDuet = musicInfo.shinutiMania;
+                if (musicInfo.shinutiUraDuet == 0)
+                    musicInfo.shinutiUraDuet = musicInfo.shinutiUra;
+
+                int EstimateScoreBasedOnNotes(TJAMetadata.Course course)
+                {
+                    return Math.Max(1, 1000000 / course.EstimatedNotes);
                 }
 
                 var json = JsonConvert.SerializeObject(musicInfo, Formatting.Indented);

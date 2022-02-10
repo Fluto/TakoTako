@@ -20,14 +20,14 @@ To install mods is a bit tricky this time around as we have to take a few more s
 5. Go to where you installed your game, for example `C:\XboxGames\T Tablet\Content`
 6. Paste all of the files from the .zip from step 5 into this folder
 (It will look something like this)\
-![](https://github.com/Fluto/TakoTako/blob/main/readme-image-0.png)
+![](/readme-image-0.png)
 7. We now need to give special permissions to the `BepInEx` folder. To do this, right click it, click on `Properties`, go to the `Security` tab, Click on the `Advanced` button, Click Change at the top, Under `Enter the object name to select` field type in your username and click `Check Names`. If the text doesn't become underscored that means you have entered the incorrect username. Then press `Ok` on that window to dismiss it. Going back to the `Advanced Security Settings Window` tick `Replace owner on subcontainers and objects` then finally press Apply.
-![](https://github.com/Fluto/TakoTako/blob/main/readme-image-1.png)
+![](/readme-image-1.png)
 8. Run Taiko no Tatusjin The Drum Master once, then close it. This will generate some files
 9. Look in your game's folder again, new files will have been generated under `.\BepInEx\plugins`
 10. ![Download my patch](https://github.com/Fluto/TaikoMods/releases)
 11. Extract the `com.fluto.takotako` folder from the download in step 10 and paste it into the `.\BepInEx\plugins` folder\
-![](https://github.com/Fluto/TakoTako/blob/main/readme-image-2.png)
+![](/readme-image-2.png)
 12. And you're done!
 
 

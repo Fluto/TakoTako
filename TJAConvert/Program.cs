@@ -679,7 +679,7 @@ namespace TJAConvert
                     attempts--;
 
                     // todo: Not sure how to solve this, so ignore it for now
-                    if (result.Contains("branches must have same measure count") || result.Contains("invalid #BRANCHSTART"))
+                    if (result.Contains("branches must have same measure count"))
                         return -2;
 
                     async Task RunProcess()
@@ -858,10 +858,39 @@ namespace TJAConvert
                     return true;
                 }
 
+                if (result.Contains("invalid #BRANCHSTART"))
+                {
+                    var currentLines = File.ReadLines(newPath).ToList();
+                    for (var i = 0; i < currentLines.Count; i++)
+                    {
+                        var line = currentLines[i];
+                        if (!line.StartsWith("#BRANCHSTART p,", StringComparison.InvariantCultureIgnoreCase))
+                            continue;
+
+                        var arguments = line.Substring("#BRANCHSTART ".Length).Split(',');
+                        // This invalid branch start error needs to be manually resolved
+                        if (arguments.Length != 3)
+                            return false;
+
+                        float number1;
+                        float number2;
+                        if (!float.TryParse(arguments[1], out var test))
+                            return false;
+
+                        number1 = test;
+                        if (!float.TryParse(arguments[2], out test))
+                            return false;
+
+                        number2 = test;
+                        currentLines[i] = $"#BRANCHSTART p,{(int)Math.Ceiling(number1)},{(int)Math.Ceiling(number2)}";
+                    }
+                    File.WriteAllLines(newPath, currentLines);
+                    return true;
+                }
+
                 if (result.Contains("#E must be after the #N branch") || result.Contains("#M must be after the #E branch"))
                 {
                     var currentLines = File.ReadLines(newPath).ToList();
-                    // var problematicCourse = GetCourseWithProblems();
 
                     string currentBranch = "";
                     int startOfBranch = -1;

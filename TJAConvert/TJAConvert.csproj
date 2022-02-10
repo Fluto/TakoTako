@@ -39,6 +39,7 @@
     </ItemGroup>
 
     <Target Name="PostBuildCopy" AfterTargets="PostBuildEvent">
-        <Copy SourceFiles="$(TargetDir)TJAConvert.exe" DestinationFolder="$(ProjectDir)\..\TakoTako\Executables" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="$(ProjectDir)..\TakoTako\Executables\tja2bin.exe" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="$(TargetDir)TJAConvert.exe" DestinationFolder="$(ProjectDir)..\TakoTako\Executables" SkipUnchangedFiles="true" />
     </Target>
 </Project>

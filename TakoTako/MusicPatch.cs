@@ -192,7 +192,7 @@ public class MusicPatch
                 {
                     if (IsTjaConverted(musicDirectory, out var conversionStatus) && conversionStatus != null)
                     {
-                        foreach (var item in conversionStatus.Items.Where(item => item.Successful))
+                        foreach (var item in conversionStatus.Items.Where(item => item.Successful && item.Version == ConversionStatus.ConversionItem.CurrentVersion))
                             SubmitDirectory(Path.Combine(musicDirectory, item.FolderName), true);
                         return;
                     }
@@ -239,14 +239,14 @@ public class MusicPatch
                             if (!match.Success)
                                 continue;
 
-                            var resultInt = int.Parse(match.Groups["ID"].Value);
+                            var resultCode = int.Parse(match.Groups["ID"].Value);
                             var folderPath = match.Groups["PATH"].Value;
 
                             folderPath = Path.GetFullPath(folderPath).Replace(Path.GetFullPath(musicDirectory), ".");
 
                             var existingEntry = conversionStatus.Items.FirstOrDefault(x => x.FolderName == folderPath);
                             var asciiFolderPath = Regex.Replace(folderPath, @"[^\u0000-\u007F]+", string.Empty);
-                            if (resultInt >= 0)
+                            if (resultCode >= 0)
                                 Log.LogInfo($"Converted {asciiFolderPath} successfully");
                             else
                                 Log.LogError($"Could not convert {asciiFolderPath}");
@@ -257,13 +257,17 @@ public class MusicPatch
                                 {
                                     Attempts = 1,
                                     FolderName = folderPath,
-                                    Successful = resultInt >= 0,
+                                    Successful = resultCode >= 0,
+                                    ResultCode = resultCode,
+                                    Version = ConversionStatus.ConversionItem.CurrentVersion,
                                 });
                             }
                             else
                             {
                                 existingEntry.Attempts++;
-                                existingEntry.Successful = resultInt >= 0;
+                                existingEntry.Successful = resultCode >= 0;
+                                existingEntry.ResultCode = resultCode;
+                                existingEntry.Version = ConversionStatus.ConversionItem.CurrentVersion;
                             }
                         }
 
@@ -422,7 +426,7 @@ public class MusicPatch
             if (conversionStatus == null)
                 return false;
 
-            return conversionStatus.Items.Count != 0 && conversionStatus.Items.All(x => x.Successful);
+            return conversionStatus.Items.Count != 0 && conversionStatus.Items.All(x => x.Successful && x.Version == ConversionStatus.ConversionItem.CurrentVersion);
         }
         catch
         {
@@ -1881,13 +1885,14 @@ public class MusicPatch
 
         public class ConversionItem
         {
-            [JsonIgnore] public const int CurrentVersion = 1;
+            [JsonIgnore] public const int CurrentVersion = 2;
             [JsonIgnore] public const int MaxAttempts = 3;
 
             [JsonProperty("f")] public string FolderName;
             [JsonProperty("a")] public int Attempts;
             [JsonProperty("s")] public bool Successful;
-            [JsonProperty("v")] public int Version = CurrentVersion;
+            [JsonProperty("v")] public int Version;
+            [JsonProperty("e")] public int ResultCode;
 
             public override string ToString()
             {

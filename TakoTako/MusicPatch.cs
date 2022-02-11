@@ -629,7 +629,7 @@ public class MusicPatch
 
             void Add(string key, TextEntry textEntry)
             {
-                var (text, font) = GetValuesTextEntry(textEntry);
+                var (text, font) = GetValuesTextEntry(textEntry, languageValue);
                 musicInfoAccessors.Add(new WordDataInterface.WordListInfoAccesser(key, text, font));
             }
         }
@@ -688,11 +688,11 @@ public class MusicPatch
             return (text, font);
         }
 
-        (string text, int font) GetValuesTextEntry(TextEntry textEntry)
+        (string text, int font) GetValuesTextEntry(TextEntry textEntry, string selectedLanguage)
         {
             string text;
             int font;
-            switch (languageValue)
+            switch (selectedLanguage)
             {
                 case "Japanese":
                     text = textEntry.jpText;
@@ -739,7 +739,31 @@ public class MusicPatch
                     break;
             }
 
-            if (!string.IsNullOrEmpty(text)) return (text, font);
+            // if this text is default, and we're not English / Japanese default to one of them
+            if (string.IsNullOrEmpty(text) && selectedLanguage != "Japanese" && selectedLanguage != "English")
+            {
+                string fallbackLanguage;
+                switch (selectedLanguage)
+                {
+                    case "Chinese":
+                    case "ChineseT":
+                    case "ChineseTraditional":
+                    case "ChineseSimplified":
+                    case "ChineseS":
+                    case "Korean":
+                        fallbackLanguage = "Japanese";
+                        break;
+                    default:
+                        fallbackLanguage = "English";
+                        break;
+                }
+
+                return GetValuesTextEntry(textEntry, fallbackLanguage);
+            }
+
+            if (!string.IsNullOrEmpty(text))
+                return (text, font);
+
             text = textEntry.text;
             font = textEntry.font;
 

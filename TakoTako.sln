@@ -1,10 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TakoTako.Common", "TakoTakoScripts\TakoTako.Common\TakoTako.Common.csproj", "{DDD2BC9B-15CB-47AE-A104-F45A3C65C7B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TakoTako.Common", "TakoTako.Common\TakoTako.Common.csproj", "{DDD2BC9B-15CB-47AE-A104-F45A3C65C7B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TJAConvert", "TakoTakoScripts\TJAConvert\TJAConvert.csproj", "{9ED2476B-FB39-4BE9-8661-21311AD9A3E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TJAConvert", "TJAConvert\TJAConvert.csproj", "{9ED2476B-FB39-4BE9-8661-21311AD9A3E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TakoTako", "TakoTako\TakoTako.csproj", "{3B286FDB-8AB8-49B0-852E-5180AFBC20D5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9ED2476B-FB39-4BE9-8661-21311AD9A3E8} = {9ED2476B-FB39-4BE9-8661-21311AD9A3E8}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

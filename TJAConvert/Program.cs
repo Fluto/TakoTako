@@ -22,6 +22,9 @@ namespace TJAConvert
 {
     public static class Program
     {
+        public const int PaddedSongTime = 2 * 1000; // in ms
+        public const float TjaOffsetForPaddingSong = -1.0f; // in ms
+
         public static async Task Main(string[] args)
         {
             if (args.Length != 1)
@@ -100,7 +103,7 @@ namespace TJAConvert
                     Directory.CreateDirectory(tempOutDirectory);
 
                     var originalTjaData = File.ReadAllBytes(tjaPath);
-                    var tjaHash = (int)(MurmurHash2.Hash(originalTjaData) & 0xFFFF_FFF);
+                    var tjaHash = (int) (MurmurHash2.Hash(originalTjaData) & 0xFFFF_FFF);
 
                     var passed = await TJAToFumens(metadata, tjaPath, tjaHash, tempOutDirectory);
                     if (passed >= 0) passed = CreateMusicFile(metadata, tjaHash, tempOutDirectory) ? 0 : -1;
@@ -108,14 +111,16 @@ namespace TJAConvert
                     var copyFilePath = Path.Combine(newDirectory, Path.GetFileName(originalAudioPath));
                     File.Copy(originalAudioPath, copyFilePath);
 
+                    int millisecondsAddedSilence = metadata.Offset > TjaOffsetForPaddingSong ? PaddedSongTime : 0;
+
                     var audioExtension = Path.GetExtension(copyFilePath).TrimStart('.');
                     switch (audioExtension.ToLowerInvariant())
                     {
                         case "wav":
-                            if (passed >= 0) passed = WavToACB(copyFilePath, tempOutDirectory, tjaHash) ? 0 : -1;
+                            if (passed >= 0) passed = WavToACB(copyFilePath, tempOutDirectory, tjaHash, millisecondsAddedSilence: millisecondsAddedSilence) ? 0 : -1;
                             break;
                         case "ogg":
-                            if (passed >= 0) passed = OGGToACB(copyFilePath, tempOutDirectory, tjaHash) ? 0 : -1;
+                            if (passed >= 0) passed = OGGToACB(copyFilePath, tempOutDirectory, tjaHash, millisecondsAddedSilence) ? 0 : -1;
                             break;
                         default:
                             Console.WriteLine($"Do not support {audioExtension} audio files");
@@ -202,6 +207,7 @@ namespace TJAConvert
         {
             try
             {
+                var addedTime = metadata.Offset > TjaOffsetForPaddingSong ? PaddedSongTime : 0;
                 var musicInfo = new CustomSong
                 {
                     id = tjaHash.ToString(),
@@ -212,8 +218,8 @@ namespace TJAConvert
                     branchHard = false,
                     branchMania = false,
                     branchUra = false,
-                    previewPos = (int) (metadata.PreviewTime * 1000),
-                    fumenOffsetPos = (int) (metadata.Offset * 10),
+                    previewPos = (int) (metadata.PreviewTime * 1000) + addedTime,
+                    fumenOffsetPos = (int) (metadata.Offset * 10) + (addedTime),
                     tjaFileHash = tjaHash,
                     songName = new TextEntry()
                     {
@@ -264,47 +270,89 @@ namespace TJAConvert
 
                 foreach (var course in metadata.Courses)
                 {
+                    var isDouble = course.PlayStyle == TJAMetadata.PlayStyle.Double;
+                    var shinuti = EstimateScoreBasedOnNotes(course);
+
                     //todo figure out the best score?
                     switch (course.CourseType)
                     {
                         case CourseType.Easy:
                             musicInfo.starEasy = course.Level;
-                            musicInfo.shinutiEasy = 10170;
-                            musicInfo.shinutiEasyDuet = 10170;
-                            musicInfo.scoreEasy = 360090;
-                            musicInfo.branchEasy = course.IsBranching;
+                            musicInfo.scoreEasy = 1000000;
+                            musicInfo.branchEasy = musicInfo.branchEasy || course.IsBranching;
+                            if (isDouble)
+                                musicInfo.shinutiEasyDuet = shinuti;
+                            else
+                                musicInfo.shinutiEasy = shinuti;
                             break;
                         case CourseType.Normal:
                             musicInfo.starNormal = course.Level;
-                            musicInfo.shinutiNormal = 6010;
-                            musicInfo.shinutiNormalDuet = 6010;
-                            musicInfo.scoreNormal = 650150;
-                            musicInfo.branchNormal = course.IsBranching;
+                            musicInfo.scoreNormal = 1000000;
+                            musicInfo.branchNormal = musicInfo.branchNormal || course.IsBranching;
+                            if (isDouble)
+                                musicInfo.shinutiNormalDuet = shinuti;
+                            else
+                                musicInfo.shinutiNormal = shinuti;
                             break;
                         case CourseType.Hard:
                             musicInfo.starHard = course.Level;
-                            musicInfo.shinutiHard = 3010;
-                            musicInfo.shinutiHardDuet = 3010;
-                            musicInfo.scoreHard = 800210;
-                            musicInfo.branchHard = course.IsBranching;
+                            musicInfo.scoreHard = 1000000;
+                            musicInfo.branchHard = musicInfo.branchHard || course.IsBranching;
+                            if (isDouble)
+                                musicInfo.shinutiHardDuet = shinuti;
+                            else
+                                musicInfo.shinutiHard = shinuti;
                             break;
                         case CourseType.Oni:
                             musicInfo.starMania = course.Level;
-                            musicInfo.shinutiMania = 1000;
-                            musicInfo.shinutiManiaDuet = 1000;
-                            musicInfo.scoreMania = 10000;
-                            musicInfo.branchMania = course.IsBranching;
+                            musicInfo.scoreMania = 1000000;
+                            musicInfo.branchMania = musicInfo.branchMania || course.IsBranching;
+                            if (isDouble)
+                                musicInfo.shinutiManiaDuet = shinuti;
+                            else
+                                musicInfo.shinutiMania = shinuti;
                             break;
                         case CourseType.UraOni:
                             musicInfo.starUra = course.Level;
-                            musicInfo.shinutiUra = 1000;
-                            musicInfo.shinutiUraDuet = 1000;
-                            musicInfo.scoreUra = 10000;
-                            musicInfo.branchUra = course.IsBranching;
+                            musicInfo.scoreUra = 1000000;
+                            musicInfo.branchUra = musicInfo.branchUra || course.IsBranching;
+                            if (isDouble)
+                                musicInfo.shinutiUraDuet = shinuti;
+                            else
+                                musicInfo.shinutiUra = shinuti;
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
+                }
+
+
+                // make sure each course as a score
+                if (musicInfo.shinutiEasy == 0)
+                    musicInfo.shinutiEasy = musicInfo.shinutiEasyDuet != 0 ? musicInfo.shinutiEasyDuet : 7352;
+                if (musicInfo.shinutiNormal == 0)
+                    musicInfo.shinutiNormal = musicInfo.shinutiNormalDuet != 0 ? musicInfo.shinutiNormalDuet : 4830;
+                if (musicInfo.shinutiHard == 0)
+                    musicInfo.shinutiHard = musicInfo.shinutiHardDuet != 0 ? musicInfo.shinutiHardDuet : 3144;
+                if (musicInfo.shinutiMania == 0)
+                    musicInfo.shinutiMania = musicInfo.shinutiManiaDuet != 0 ? musicInfo.shinutiManiaDuet : 2169;
+                if (musicInfo.shinutiUra == 0)
+                    musicInfo.shinutiUra = musicInfo.shinutiUraDuet != 0 ? musicInfo.shinutiUraDuet : 1420;
+
+                if (musicInfo.shinutiEasyDuet == 0)
+                    musicInfo.shinutiEasyDuet = musicInfo.shinutiEasy;
+                if (musicInfo.shinutiNormalDuet == 0)
+                    musicInfo.shinutiNormalDuet = musicInfo.shinutiNormal;
+                if (musicInfo.shinutiHardDuet == 0)
+                    musicInfo.shinutiHardDuet = musicInfo.shinutiHard;
+                if (musicInfo.shinutiManiaDuet == 0)
+                    musicInfo.shinutiManiaDuet = musicInfo.shinutiMania;
+                if (musicInfo.shinutiUraDuet == 0)
+                    musicInfo.shinutiUraDuet = musicInfo.shinutiUra;
+
+                int EstimateScoreBasedOnNotes(TJAMetadata.Course course)
+                {
+                    return Math.Max(1, 1000000 / course.EstimatedNotes);
                 }
 
                 var json = JsonConvert.SerializeObject(musicInfo, Formatting.Indented);
@@ -637,7 +685,7 @@ namespace TJAConvert
                     attempts--;
 
                     // todo: Not sure how to solve this, so ignore it for now
-                    if (result.Contains("branches must have same measure count") || result.Contains("invalid #BRANCHSTART"))
+                    if (result.Contains("branches must have same measure count"))
                         return -2;
 
                     async Task RunProcess()
@@ -816,10 +864,40 @@ namespace TJAConvert
                     return true;
                 }
 
+                if (result.Contains("invalid #BRANCHSTART"))
+                {
+                    var currentLines = File.ReadLines(newPath).ToList();
+                    for (var i = 0; i < currentLines.Count; i++)
+                    {
+                        var line = currentLines[i];
+                        if (!line.StartsWith("#BRANCHSTART p,", StringComparison.InvariantCultureIgnoreCase))
+                            continue;
+
+                        var arguments = line.Substring("#BRANCHSTART ".Length).Split(',');
+                        // This invalid branch start error needs to be manually resolved
+                        if (arguments.Length != 3)
+                            return false;
+
+                        float number1;
+                        float number2;
+                        if (!float.TryParse(arguments[1], out var test))
+                            return false;
+
+                        number1 = test;
+                        if (!float.TryParse(arguments[2], out test))
+                            return false;
+
+                        number2 = test;
+                        currentLines[i] = $"#BRANCHSTART p,{(int) Math.Ceiling(number1)},{(int) Math.Ceiling(number2)}";
+                    }
+
+                    File.WriteAllLines(newPath, currentLines);
+                    return true;
+                }
+
                 if (result.Contains("#E must be after the #N branch") || result.Contains("#M must be after the #E branch"))
                 {
                     var currentLines = File.ReadLines(newPath).ToList();
-                    // var problematicCourse = GetCourseWithProblems();
 
                     string currentBranch = "";
                     int startOfBranch = -1;
@@ -988,7 +1066,7 @@ namespace TJAConvert
             }
         }
 
-        private static bool OGGToACB(string oggPath, string outDirectory, int tjaHash)
+        private static bool OGGToACB(string oggPath, string outDirectory, int tjaHash, int millisecondsAddedSilence = 0)
         {
             try
             {
@@ -1001,7 +1079,7 @@ namespace TJAConvert
                 using (FileStream compressedFileStream = File.Create($"{acbPath}.acb"))
                     decompressor.CopyTo(compressedFileStream);
 
-                var hca = OggToHca(oggPath);
+                var hca = OggToHca(oggPath, millisecondsAddedSilence);
                 if (hca == null)
                     return false;
 
@@ -1021,7 +1099,7 @@ namespace TJAConvert
             }
         }
 
-        private static bool WavToACB(string wavPath, string outDirectory, int tjaHash, bool deleteWav = false)
+        private static bool WavToACB(string wavPath, string outDirectory, int tjaHash, bool deleteWav = false, int millisecondsAddedSilence = 0)
         {
             try
             {
@@ -1034,7 +1112,7 @@ namespace TJAConvert
                 using (FileStream compressedFileStream = File.Create($"{acbPath}.acb"))
                     decompressor.CopyTo(compressedFileStream);
 
-                var hca = WavToHca(wavPath);
+                var hca = WavToHca(wavPath, millisecondsAddedSilence);
                 File.WriteAllBytes($"{acbPath}/00000.hca", hca);
                 Pack(acbPath);
                 if (File.Exists($"{outDirectory}/song_{tjaHash}.bin"))
@@ -1054,22 +1132,53 @@ namespace TJAConvert
             }
         }
 
-        private static byte[] WavToHca(string path)
+        private static byte[] WavToHca(string path, int millisecondSilence = 0)
         {
+            var wavReader = new WaveReader();
             var hcaWriter = new HcaWriter();
-            var waveReader = new WaveReader();
-            var audioData = waveReader.Read(File.ReadAllBytes(path));
-            return hcaWriter.GetFile(audioData);
+
+            if (millisecondSilence > 0)
+            {
+                WaveFileReader reader = new WaveFileReader(path);
+                var memoryStream = new MemoryStream();
+
+                var trimmed = new OffsetSampleProvider(reader.ToSampleProvider())
+                {
+                    DelayBy = TimeSpan.FromMilliseconds(millisecondSilence)
+                };
+                WaveFileWriter.WriteWavFileToStream(memoryStream, trimmed.ToWaveProvider16());
+
+                var audioData = wavReader.Read(memoryStream.ToArray());
+                return hcaWriter.GetFile(audioData);
+            }
+            else
+            {
+                var audioData = wavReader.Read(File.ReadAllBytes(path));
+                return hcaWriter.GetFile(audioData);
+            }
         }
 
-        private static byte[] OggToHca(string inPath)
+        private static byte[] OggToHca(string inPath, int millisecondSilence = 0)
         {
             try
             {
                 using FileStream fileIn = new FileStream(inPath, FileMode.Open);
                 var vorbis = new VorbisWaveReader(fileIn);
+                var wavProvider = new SampleToWaveProvider16(vorbis);
                 var memoryStream = new MemoryStream();
-                WaveFileWriter.WriteWavFileToStream(memoryStream, new SampleToWaveProvider16(vorbis));
+
+                if (millisecondSilence > 0)
+                {
+                    var trimmed = new OffsetSampleProvider(wavProvider.ToSampleProvider())
+                    {
+                        DelayBy = TimeSpan.FromMilliseconds(millisecondSilence)
+                    };
+                    WaveFileWriter.WriteWavFileToStream(memoryStream, trimmed.ToWaveProvider16());
+                }
+                else
+                {
+                    WaveFileWriter.WriteWavFileToStream(memoryStream, wavProvider);
+                }
 
                 var hcaWriter = new HcaWriter();
                 var waveReader = new WaveReader();

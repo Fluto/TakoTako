@@ -160,9 +160,7 @@ internal class TJAMetadata
 
             currentCourse.SongDataIndexEnd = courseStartIndex;
 
-            if (newContent)
-                Courses.Add(currentCourse);
-
+            // is this branching?
             for (int i = currentCourse.SongDataIndexStart; i < currentCourse.SongDataIndexEnd; i++)
             {
                 var line = lines[i];
@@ -172,6 +170,52 @@ internal class TJAMetadata
                     break;
                 }
             }
+
+            // calculate roughly the amount of song notes in this course
+            int noteCount = 0;
+            int branchNoteCount = 0;
+            int branches = 0;
+            bool inBranch = false;
+            for (int i = currentCourse.SongDataIndexStart; i < currentCourse.SongDataIndexEnd; i++)
+            {
+                var line = lines[i].Trim();
+
+                if (line.Equals("#N", StringComparison.InvariantCultureIgnoreCase)
+                    || line.Equals("#E", StringComparison.InvariantCultureIgnoreCase)
+                    || line.Equals("#M", StringComparison.InvariantCultureIgnoreCase))
+                    branches++;
+
+                var branchStart = line.StartsWith("#BRANCHSTART", StringComparison.InvariantCultureIgnoreCase);
+                if (inBranch && (branchStart || line.StartsWith("#BRANCHEND", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    noteCount += branchNoteCount / Math.Max(1, branches);
+                    inBranch = false;
+                }
+
+                if (!inBranch && branchStart)
+                {
+                    inBranch = true;
+                    branchNoteCount = 0;
+                    branches = 0;
+                }
+
+                if (!line.EndsWith(","))
+                    continue;
+
+                var notes = line.Count(x => x is '1' or '2' or '3' or '4');
+                if (inBranch)
+                    branchNoteCount += notes;
+                else
+                    noteCount += notes;
+            }
+
+            if (currentCourse.PlayStyle == PlayStyle.Double)
+                currentCourse.EstimatedNotes = noteCount / 2;
+            else
+                currentCourse.EstimatedNotes = noteCount;
+
+            if (newContent)
+                Courses.Add(currentCourse);
 
             // duplicate the existing course
             currentCourse = new Course(currentCourse);
@@ -241,8 +285,6 @@ internal class TJAMetadata
 
             return CourseType.UraOni;
         }
-
-
     }
 
     public const string TJAFieldRegexTemplate = "^{0}:\\s*(?<VALUE>.*?)\\s*$";
@@ -289,6 +331,8 @@ internal class TJAMetadata
 
         public int SongDataIndexStart;
         public int SongDataIndexEnd;
+
+        public int EstimatedNotes = 0;
 
         public Course()
         {

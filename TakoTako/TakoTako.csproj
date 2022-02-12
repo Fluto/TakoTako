@@ -4,12 +4,12 @@
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>com.fluto.takotako</AssemblyName>
     <Description>Fixes Taiko issues and allows custom songs</Description>
-    <Version>2.1.0</Version>
+    <Version>2.2.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RootNamespace>TakoTako</RootNamespace>
     <PackageId>com.fluto.takotako</PackageId>
-    <PackageVersion>2.1.0</PackageVersion>
+    <PackageVersion>2.2.0</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

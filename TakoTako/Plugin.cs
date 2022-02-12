@@ -16,6 +16,8 @@ namespace TakoTako
         public ConfigEntry<bool> ConfigDisableScreenChangeOnFocus;
         public ConfigEntry<bool> ConfigFixSignInScreen;
         public ConfigEntry<bool> ConfigEnableCustomSongs;
+        public ConfigEntry<bool> ConfigEnableTaikoDrumSupport;
+        public ConfigEntry<bool> ConfigTaikoDrumUseNintendoLayout;
 
         public ConfigEntry<string> ConfigSongDirectory;
         public ConfigEntry<bool> ConfigSaveEnabled;
@@ -89,6 +91,16 @@ namespace TakoTako
                 "DisableScreenChangeOnFocus",
                 false,
                 "When focusing this wont do anything jank, I thnk");
+
+            ConfigEnableTaikoDrumSupport = Config.Bind("Controller.TaikoDrum",
+                "ConfigEnableTaikoDrumSupport",
+                true,
+                "This will enable support for Taiko drums, current tested with official Hori Drum");
+
+            ConfigTaikoDrumUseNintendoLayout = Config.Bind("Controller.TaikoDrum",
+                "ConfigTaikoDrumUseNintendoLayout",
+                false,
+                "This will use the Nintendo layout YX/BA for the Hori Taiko Drum");
         }
 
         private void SetupHarmony()
@@ -104,6 +116,9 @@ namespace TakoTako
 
             if (ConfigDisableScreenChangeOnFocus.Value)
                 _harmony.PatchAll(typeof(DisableScreenChangeOnFocus));
+
+            if (ConfigEnableTaikoDrumSupport.Value)
+                _harmony.PatchAll(typeof(TaikoDrumSupport));
 
             if (ConfigEnableCustomSongs.Value)
             {

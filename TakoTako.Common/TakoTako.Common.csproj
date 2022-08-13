@@ -1,16 +1,50 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release-BepInEx6' ">
+        <Optimize Condition=" '$(Optimize)' == '' ">true</Optimize>
+        <DefineConstants>TRACE;TAIKO_IL2CPP</DefineConstants>
+        <Optimize>true</Optimize>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release-BepInEx5' ">
+        <Optimize Condition=" '$(Optimize)' == '' ">true</Optimize>
+        <DefineConstants>TRACE;TAIKO_MONO;</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug-BepInEx5' ">
+        <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+        <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
+        <DefineConstants>TRACE;TAIKO_MONO;</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug-BepInEx6' ">
+        <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+        <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
+        <DefineConstants>TRACE;TAIKO_IL2CPP;</DefineConstants>
+    </PropertyGroup>
+
     <PropertyGroup>
-        <TargetFramework>net48</TargetFramework>
         <RootNamespace>TakoTako.Common</RootNamespace>
         <AssemblyName>TakoTako.Common</AssemblyName>
         <LangVersion>latest</LangVersion>
+        <Configurations>Release-BepInEx6;Release-BepInEx5;Debug-BepInEx6;Debug-BepInEx5</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <TargetFrameworks>net48;netstandard2.1</TargetFrameworks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release-BepInEx5' ">
+        <Optimize Condition=" '$(Optimize)' == '' ">true</Optimize>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug-BepInEx5' ">
+        <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+        <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
     </PropertyGroup>
 
     <ItemGroup>
-      <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\TakoTako\References\Newtonsoft.Json.dll</HintPath>
-      </Reference>
+        <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>..\TakoTako\References\Newtonsoft.Json.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
 </Project>

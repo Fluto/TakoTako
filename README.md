@@ -11,12 +11,12 @@ Currently has the features:
 ----
 ## Installation
 
-To install mods is a bit tricky this time around as we have to take a few more steps to be able to inject files into the game. ![Swigs did a quick video on it here](https://youtu.be/WDsWDVbtbbI) but if you want to follow along in text read on ahead.
+To install mods is a bit tricky this time around as we have to take a few more steps to be able to inject files into the game. [Swigs did a quick video on it here](https://youtu.be/WDsWDVbtbbI) but if you want to follow along in text read on ahead.
 
 1. Become an Xbox Insider, to do this open the `Xbox Insider Hub` which you can get from the Microsoft Store if you don't already have it installed. Go to Previews > Windows Gaming, and join it. There should be an update ready for you for the Xbox app, so go ahead and update and relaunch it
 2. In the Xbox App go to Settings > General and enable `Use advanced installation and management features`. Feel free to change your installation directory
 3. If the game is already installed uninstall it, and reinstall it
-4. Download ![BepInEx](https://github.com/BepInEx/BepInEx/releases) `BepInEx_x64_XXXXX.zip`, as of writing the latest version is 5.4.18. This is a mod to patch Unity Games
+4. Download [BepInEx](https://github.com/BepInEx/BepInEx/releases) `BepInEx_x64_XXXXX.zip`, as of writing the latest version is 5.4.18. This is a mod to patch Unity Games
 5. Go to where you installed your game, for example `C:\XboxGames\T Tablet\Content`
 6. Paste all of the files from the .zip from step 5 into this folder
 (It will look something like this)\
@@ -25,7 +25,7 @@ To install mods is a bit tricky this time around as we have to take a few more s
 ![](/readme-image-1.png)
 8. Run Taiko no Tatusjin The Drum Master once, then close it. This will generate some files
 9. Look in your game's folder again, new files will have been generated under `.\BepInEx\plugins`
-10. ![Download my patch](https://github.com/Fluto/TaikoMods/releases)
+10. [Download my patch](https://github.com/Fluto/TaikoMods/releases)
 11. Extract the `com.fluto.takotako` folder from the download in step 10 and paste it into the `.\BepInEx\plugins` folder\
 ![](/readme-image-2.png)
 12. And you're done!
@@ -171,6 +171,6 @@ TextEntry {
 
 ---
 ## Credits 
-- ![SuperSonicAudio](https://github.com/blueskythlikesclouds/SonicAudioTools)
-- ![VGAudio](https://github.com/Thealexbarney/VGAudio)
+- [SonicAudioTools](https://github.com/blueskythlikesclouds/SonicAudioTools)
+- [VGAudio](https://github.com/Thealexbarney/VGAudio)
 - Pulsar#5356 for the TJA2BIN.exe

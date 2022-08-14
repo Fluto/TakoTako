@@ -2,33 +2,42 @@
 
 This is a mod for Taiko no Tatsujin: The Drum Master\
 Currently has the features:
-- Fixes sign in screen for version 1.1.0.0
-- Skips splash screen
-- Disable fullscreen on application focus (worked when in windowed mode)
+- Auto sign-in into xbox
+- Skip splash screen
+- Skip DLC check screen
 - Allows custom official tracks or TJAs to be loaded into the game
 - Override songs names to a certain language than the default one
+- Allows use of the Hori Taiko Drum
+
+---
+## Supported Versions
+<details>
+<summary>Supported Versions</summary>
+<p>
+- <b>Mono</b>: 1.1.0.0 - 1.2.2.0
+</p>
+<p>
+- <b>Il2CPP</b>: 1.3.0.0 - 1.6.00
+</p>
+</details>
 
 ----
 ## Installation
 
-To install mods is a bit tricky this time around as we have to take a few more steps to be able to inject files into the game. [Swigs did a quick video on it here](https://youtu.be/WDsWDVbtbbI) but if you want to follow along in text read on ahead.
-
-1. Become an Xbox Insider, to do this open the `Xbox Insider Hub` which you can get from the Microsoft Store if you don't already have it installed. Go to Previews > Windows Gaming, and join it. There should be an update ready for you for the Xbox app, so go ahead and update and relaunch it
-2. In the Xbox App go to Settings > General and enable `Use advanced installation and management features`. Feel free to change your installation directory
-3. If the game is already installed uninstall it, and reinstall it
-4. Download [BepInEx](https://github.com/BepInEx/BepInEx/releases) `BepInEx_x64_XXXXX.zip`, as of writing the latest version is 5.4.18. This is a mod to patch Unity Games
-5. Go to where you installed your game, for example `C:\XboxGames\T Tablet\Content`
-6. Paste all of the files from the .zip from step 5 into this folder
+1. Install the game via the xbox app to a directory of your choice
+2. Download [BepInEx](https://builds.bepinex.dev/projects/bepinex_be). If you're using a newer version of Taiko 1.3.0.0 or higher (you probably are) download the IL2CPP version `BepInEx_UnityIL2CPP_x64_XXXXX.zip`.If you're using a downgraded version of Taiko (1.2.2.0 on lower) download the "Mono" build, called something like `BepInEx_UnityMono_x64_XXXXX.zip`.
+3. Go to where you installed your game, for example `C:\XboxGames\T Tablet\Content`
+4. Paste all of the files from the .zip from step 5 into this folder
 (It will look something like this)\
 ![](/readme-image-0.png)
-7. We now need to give special permissions to the `BepInEx` folder. To do this, right click it, click on `Properties`, go to the `Security` tab, Click on the `Advanced` button, Click Change at the top, Under `Enter the object name to select` field type in your username and click `Check Names`. If the text doesn't become underscored that means you have entered the incorrect username. Then press `Ok` on that window to dismiss it. Going back to the `Advanced Security Settings Window` tick `Replace owner on subcontainers and objects` then finally press Apply.
+5. We now need to give special permissions to the `BepInEx` folder. To do this, right click it, click on `Properties`, go to the `Security` tab, Click on the `Advanced` button, Click Change at the top, Under `Enter the object name to select` field type in your username and click `Check Names`. If the text doesn't become underscored that means you have entered the incorrect username. Then press `Ok` on that window to dismiss it. Going back to the `Advanced Security Settings Window` tick `Replace owner on subcontainers and objects` then finally press Apply.
 ![](/readme-image-1.png)
-8. Run Taiko no Tatusjin The Drum Master once, then close it. This will generate some files
-9. Look in your game's folder again, new files will have been generated under `.\BepInEx\plugins`
-10. [Download my patch](https://github.com/Fluto/TaikoMods/releases)
-11. Extract the `com.fluto.takotako` folder from the download in step 10 and paste it into the `.\BepInEx\plugins` folder\
+6. Run Taiko no Tatusjin The Drum Master once, then close it. This will generate some files
+7. Look in your game's folder again, new files will have been generated under `.\BepInEx\plugins`
+8. [Download my patch](https://github.com/Fluto/TaikoMods/releases). Once again download the IL2CPP version if you're on a newer version of Taiko, otherwise grab the Mono version.
+9. Extract the `com.fluto.takotako` folder from the download in step 10 and paste it into the `.\BepInEx\plugins` folder\
 ![](/readme-image-2.png)
-12. And you're done!
+10. And you're done!
 
 
 ## Configuration
@@ -153,17 +162,6 @@ TextEntry {
     int krFont; (langauge override for 영어 text)
 }
 ```
----
-## Supported Versions
-<details>
-<summary>Supported Versions</summary>
-<p>
-- 1.1.0.0
-</p>
-<p>
-- 1.2.2.0
-</p>
-</details>
 
 ---
 ## Contributers

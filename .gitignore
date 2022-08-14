@@ -399,3 +399,5 @@ FodyWeavers.xsd
 .idea
 
 TakoTako/Executables/TJAConvert.exe
+TakoTako/lib
+TaikoUnityAssets

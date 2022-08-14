@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using HarmonyLib;
 using UnityEngine;
+#if TAIKO_IL2CPP
+using Array = Il2CppSystem.Array;
+using UnhollowerBaseLib;
+#endif
 
 namespace TakoTako;
 
@@ -64,6 +69,26 @@ public class TaikoDrumSupport
         }
     }
 
+    private static unsafe 
+#if TAIKO_IL2CPP
+        bool[] 
+#elif TAIKO_MONO
+        bool[,] 
+#endif
+        GetPreviousButtons(ControllerManager instance)
+    {
+#if TAIKO_IL2CPP
+        var fieldPtr = (IntPtr)AccessTools.Field(typeof(ControllerManager), "NativeFieldInfoPtr_prevButtons").GetValue(null);
+        System.IntPtr nativeObject = *(System.IntPtr*) (IL2CPP.Il2CppObjectBaseToPtrNotNull((Il2CppObjectBase) instance) + (int) IL2CPP.il2cpp_field_get_offset(fieldPtr));
+        var array = nativeObject == System.IntPtr.Zero ? (Il2CppStructArray<bool>) null : new Il2CppStructArray<bool>(nativeObject);
+        return array;
+        // return instance.prevButtons.Cast<ReferenceObject<bool[,]>>();
+#elif TAIKO_MONO
+       return instance.prevButtons;
+#endif
+    }
+    
+
     [HarmonyPatch(typeof(ControllerManager), "GetButtonDown")]
     [HarmonyPostfix]
     private static void GetButtonDown_Postfix(ControllerManager __instance, ref bool __result, ControllerManager.ControllerPlayerNo controllerPlayerNo, ControllerManager.Buttons btn)
@@ -73,7 +98,14 @@ public class TaikoDrumSupport
             return;
 
         var prefix = $"J{controllerIndex}";
-        var previous = __instance.prevButtons[(int) (controllerPlayerNo - 1), (int) btn];
+        #if TAIKO_IL2CPP
+        var previousButtons = GetPreviousButtons(__instance);
+        int playerIndex = (int) (controllerPlayerNo - 1);
+        int btnIndex = (int) btn;
+        var previous = previousButtons[playerIndex * 31 + btnIndex];
+        #elif TAIKO_MONO
+        var previous = GetPreviousButtons(__instance)[(int) (controllerPlayerNo - 1), (int) btn];
+        #endif
 
         __result = btn switch
         {
@@ -114,7 +146,15 @@ public class TaikoDrumSupport
             return;
 
         var prefix = $"J{controllerIndex}";
-        var previous = __instance.prevButtons[(int) (controllerPlayerNo - 1), (int) btn];
+        
+#if TAIKO_IL2CPP
+        var previousButtons = GetPreviousButtons(__instance);
+        int playerIndex = (int) (controllerPlayerNo - 1);
+        int btnIndex = (int) btn;
+        var previous = previousButtons[playerIndex * 31 + btnIndex];
+#elif TAIKO_MONO
+        var previous = GetPreviousButtons(__instance)[(int) (controllerPlayerNo - 1), (int) btn];
+#endif
 
         __result = btn switch
         {

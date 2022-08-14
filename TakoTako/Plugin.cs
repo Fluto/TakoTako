@@ -4,13 +4,20 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
-using HarmonyLib.Tools;
 using UnityEngine;
+#if TAIKO_IL2CPP
+using BepInEx.IL2CPP.Utils;
+using BepInEx.IL2CPP;
+#endif
 
 namespace TakoTako
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+#if TAIKO_MONO
     public class Plugin : BaseUnityPlugin
+#elif TAIKO_IL2CPP
+    public class Plugin : BasePlugin
+#endif
     {
         public ConfigEntry<bool> ConfigSkipSplashScreen;
         public ConfigEntry<bool> ConfigDisableScreenChangeOnFocus;
@@ -18,6 +25,7 @@ namespace TakoTako
         public ConfigEntry<bool> ConfigEnableCustomSongs;
         public ConfigEntry<bool> ConfigEnableTaikoDrumSupport;
         public ConfigEntry<bool> ConfigTaikoDrumUseNintendoLayout;
+        public ConfigEntry<bool> ConfigSkipDLCCheck;
 
         public ConfigEntry<string> ConfigSongDirectory;
         public ConfigEntry<bool> ConfigSaveEnabled;
@@ -27,17 +35,27 @@ namespace TakoTako
 
         public static Plugin Instance;
         private Harmony _harmony;
-        public static ManualLogSource Log;
+        public new static ManualLogSource Log;
 
+        // private ModMonoBehaviourHelper _modMonoBehaviourHelper;
+
+#if TAIKO_MONO
         private void Awake()
+#elif TAIKO_IL2CPP
+        public override void Load()
+#endif
         {
             Instance = this;
-            Log = Logger;
 
-            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+#if TAIKO_MONO
+            Log = Logger;
+#elif TAIKO_IL2CPP
+            Log = base.Log;
+#endif
+
+            Log.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
 
             SetupConfig();
-
             SetupHarmony();
         }
 
@@ -79,13 +97,18 @@ namespace TakoTako
 
             ConfigFixSignInScreen = Config.Bind("General",
                 "FixSignInScreen",
-                true,
+                false,
                 "When true this will apply the patch to fix signing into Xbox Live");
 
             ConfigSkipSplashScreen = Config.Bind("General",
                 "SkipSplashScreen",
                 true,
                 "When true this will skip the intro");
+            
+            ConfigSkipDLCCheck = Config.Bind("General",
+                "SkipDLCCheck",
+                true,
+                "When true this will skip slow DLC checks");
 
             ConfigDisableScreenChangeOnFocus = Config.Bind("General",
                 "DisableScreenChangeOnFocus",
@@ -120,6 +143,11 @@ namespace TakoTako
             if (ConfigEnableTaikoDrumSupport.Value)
                 _harmony.PatchAll(typeof(TaikoDrumSupport));
 
+            #if TAIKO_IL2CPP
+            if (ConfigSkipDLCCheck.Value)
+                _harmony.PatchAll(typeof(SkipDLCCheck));
+            #endif
+    
             if (ConfigEnableCustomSongs.Value)
             {
                 _harmony.PatchAll(typeof(MusicPatch));
@@ -127,9 +155,15 @@ namespace TakoTako
             }
         }
 
+        public static MonoBehaviour GetMonoBehaviour() => TaikoSingletonMonoBehaviour<CommonObjects>.Instance;
+
         public void StartCustomCoroutine(IEnumerator enumerator)
         {
-            StartCoroutine(enumerator);
+            #if TAIKO_MONO
+            GetMonoBehaviour().StartCoroutine(enumerator);
+            #elif TAIKO_IL2CPP
+            GetMonoBehaviour().StartCoroutine(enumerator);
+            #endif
         }
     }
 }

@@ -1,66 +1,104 @@
 <Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release-BepInEx6' ">
+        <Optimize Condition=" '$(Optimize)' == '' ">true</Optimize>
+        <DefineConstants>TRACE;TAIKO_IL2CPP</DefineConstants>
+        <Optimize>true</Optimize>
+        <GameDir>C:\XboxGames\T Tablet\Content</GameDir>
+    </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyName>com.fluto.takotako</AssemblyName>
-    <Description>Fixes Taiko issues and allows custom songs</Description>
-    <Version>2.2.0</Version>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
-    <RootNamespace>TakoTako</RootNamespace>
-    <PackageId>com.fluto.takotako</PackageId>
-    <PackageVersion>2.2.0</PackageVersion>
-  </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug-BepInEx6' ">
+        <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+        <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
+        <DefineConstants>TRACE;TAIKO_IL2CPP;</DefineConstants>
+        <GameDir>C:\XboxGames\T Tablet\Content</GameDir>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-    <PackageReference Include="BepInEx.Core" Version="5.*" />
-    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
-    <PackageReference Include="Costura.Fody" Version="5.7.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Fody" Version="6.6.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Taiko.GameLibs" Version="1.2.2-r.0" />
-    <PackageReference Include="UnityEngine.Modules" Version="2020.3.19" IncludeAssets="compile" />
-  </ItemGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release-BepInEx5' ">
+        <Optimize Condition=" '$(Optimize)' == '' ">true</Optimize>
+        <DefineConstants>TRACE;TAIKO_MONO;</DefineConstants>
+        <GameDir>D:\XboxGames\T Tablet\Content</GameDir>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>References\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug-BepInEx5' ">
+        <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+        <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
+        <DefineConstants>TRACE;TAIKO_MONO;</DefineConstants>
+        <GameDir>D:\XboxGames\T Tablet\Content</GameDir>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <TargetFramework Condition="$(DefineConstants.Contains('TAIKO_IL2CPP'))">netstandard2.1</TargetFramework>
+        <TargetFramework Condition="$(DefineConstants.Contains('TAIKO_MONO'))">net48</TargetFramework>
+        <AssemblyName>com.fluto.takotako</AssemblyName>
+        <Description>A suite of mods that allow for Custom Songs and Taiko Drum support</Description>
+        <Version>3.0.0</Version>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>latest</LangVersion>
+        <RootNamespace>TakoTako</RootNamespace>
+        <PackageId>com.fluto.takotako</PackageId>
+        <PackageVersion>3.0.0</PackageVersion>
+        <Configurations>Release-BepInEx6;Release-BepInEx5;Debug-BepInEx6;Debug-BepInEx5</Configurations>
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="References" />
-  </ItemGroup>
+    <ItemGroup Condition="$(DefineConstants.Contains('TAIKO_IL2CPP'))">
+        <PackageReference Include="BepInEx.IL2CPP" Version="6.0.0-be.574" IncludeAssets="compile" />
+        <Reference Include="$(GameDir)\BepInEx\unhollowed\*.dll" Private="false" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="Executables\tja2bin.exe" />
-    <None Remove="Executables\**" />
-    <None Remove="Exes\**" />
-  </ItemGroup>
+    <ItemGroup Condition="$(DefineConstants.Contains('TAIKO_MONO'))">
+        <PackageReference Include="BepInEx.Core" Version="5.*" />
+        <!-- Empty methods -->
+        <PackageReference Include="Taiko.GameLibs" Version="1.2.2-r.1" />
+        <PackageReference Include="UnityEngine.Modules" Version="2020.3.34" IncludeAssets="compile" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Executables\**" />
-    <Compile Remove="Exes\**" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
+        <PackageReference Include="BepInEx.PluginInfoProps" Version="1.1.0" />
+        <PackageReference Include="Costura.Fody" Version="5.7.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Fody" Version="6.6.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Remove="Executables\**" />
-    <EmbeddedResource Remove="Exes\**" />
-  </ItemGroup>
+    <ItemGroup>
+        <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>References\Newtonsoft.Json.dll</HintPath>
+        </Reference>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\TakoTako.Common\TakoTako.Common.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <Folder Include="References" />
+    </ItemGroup>
 
-  <Target Name="PostBuildCopy" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="D:\XboxGames\T Tablet\Content\BepInEx\plugins\$(AssemblyName)" />
-    <Copy SourceFiles="$(ProjectDir)\Executables\tja2bin.exe" DestinationFolder="D:\XboxGames\T Tablet\Content\BepInEx\plugins\$(AssemblyName)" />
-    <Copy SourceFiles="$(ProjectDir)\Executables\TJAConvert.exe" DestinationFolder="D:\XboxGames\T Tablet\Content\BepInEx\plugins\$(AssemblyName)" />
-  </Target>
+    <ItemGroup>
+        <None Remove="Executables\tja2bin.exe" />
+        <None Remove="Executables\**" />
+        <None Remove="Exes\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="Executables\**" />
+        <Compile Remove="Exes\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Remove="Executables\**" />
+        <EmbeddedResource Remove="Exes\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\TakoTako.Common\TakoTako.Common.csproj" />
+    </ItemGroup>
+
+    <Target Name="PostBuildCopy" AfterTargets="PostBuildEvent">
+        <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
+        <Copy SourceFiles="$(ProjectDir)\Executables\tja2bin.exe" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
+        <Copy SourceFiles="$(ProjectDir)\Executables\TJAConvert.exe" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
+    </Target>
 </Project>

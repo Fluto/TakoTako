@@ -22,6 +22,7 @@ namespace TakoTako
 #endif
     {
         public ConfigEntry<bool> ConfigSkipSplashScreen;
+        public ConfigEntry<bool> ConfigAutomaticallyStartGame;
         public ConfigEntry<bool> ConfigDisableScreenChangeOnFocus;
         public ConfigEntry<bool> ConfigFixSignInScreen;
         public ConfigEntry<bool> ConfigEnableCustomSongs;
@@ -107,6 +108,11 @@ namespace TakoTako
                 true,
                 "When true this will skip the intro");
             
+            ConfigAutomaticallyStartGame = Config.Bind("General",
+                "AutomaticallyStartGame",
+                true,
+                "When true this will continue on the main menu");
+            
             ConfigSkipDLCCheck = Config.Bind("General",
                 "SkipDLCCheck",
                 true,
@@ -135,6 +141,9 @@ namespace TakoTako
 
             if (ConfigSkipSplashScreen.Value)
                 _harmony.PatchAll(typeof(SkipSplashScreenPatch));
+            
+            if (ConfigAutomaticallyStartGame.Value)
+                _harmony.PatchAll(typeof(AutomaticallyStartGamePatch));
 
             if (ConfigFixSignInScreen.Value)
                 _harmony.PatchAll(typeof(SignInPatch));

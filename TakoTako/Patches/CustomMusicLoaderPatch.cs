@@ -445,14 +445,17 @@ public class CustomMusicLoaderPatch
     }
 
     [HarmonyPatch(typeof(DataManager), nameof(DataManager.ExchangeWordData))]
-    [HarmonyPostfix]
+    [HarmonyPrefix]
     [HarmonyWrapSafe]
-    private static void ExchangeWordData_PostFix(DataManager __instance, string language)
+    private static bool ExchangeWordData_Prefix(DataManager __instance, string language)
     {
         if (__instance.MusicData != null)
         {
-            WordDataInterface_Postfix(__instance.WordData, language);
+            __instance.WordData = CreateWordDateInterface(language);
+            return false;
         }
+
+        return true;
     }
 
     /// <summary>
@@ -550,7 +553,6 @@ public class CustomMusicLoaderPatch
                 );
                 musicInfoAccessors.Add(musicInfo);
             }
-
             #endregion
 
             BubbleSort(musicInfoAccessors, (a, b) => a.Order - b.Order);
@@ -621,13 +623,14 @@ public class CustomMusicLoaderPatch
     /// <summary>
     /// This will handle loading the localisation of tracks
     /// </summary>
-    private static void WordDataInterface_Postfix(WordDataInterface __instance, string language)
+    private static WordDataInterface CreateWordDateInterface(string language)
     {
+        var wordDataInterface = new WordDataInterface(Application.streamingAssetsPath + "/ReadAssets/newwordlist.bin", language);
         // This is where the metadata for tracks are read in our attempt to allow custom tracks will be to add additional metadata to the list that is created
         var customSongs = GetCustomSongs();
 
         if (customSongs.Count == 0)
-            return;
+            return wordDataInterface;
 
         var customLanguage = Plugin.Instance.ConfigOverrideDefaultSongLanguage.Value;
         var languageValue = language;
@@ -635,12 +638,12 @@ public class CustomMusicLoaderPatch
             languageValue = customLanguage;
 
         // now that we have loaded this json, inject it into the existing `songInfoAccessers`
-        var musicInfoAccessors = __instance.wordListInfoAccessers;
+        var musicInfoAccessors = wordDataInterface.wordListInfoAccessers;
 
         // override the existing songs if we're using a custom language
         if (languageValue != language)
         {
-            var wordListInfoRead = (ReadData<WordListInfo>) AccessTools.Property(typeof(WordDataInterface), nameof(WordDataInterface.wordListInfoRead)).GetValue(__instance);
+            var wordListInfoRead = wordDataInterface.wordListInfoRead;
             var dictionary = wordListInfoRead.InfomationDatas.ToList();
 
             for (int i = 0; i < musicInfoAccessors.Count; i++)
@@ -704,8 +707,10 @@ public class CustomMusicLoaderPatch
             }
         }
 
-        __instance.wordListInfoAccessers = musicInfoAccessors;
+        wordDataInterface.wordListInfoAccessers = musicInfoAccessors;
 
+        return wordDataInterface;
+        
         (string text, int font) GetValuesWordList(WordListInfo wordListInfo)
         {
             string text;
@@ -1013,6 +1018,7 @@ public class CustomMusicLoaderPatch
         __instance.SongList.Clear();
         foreach (var song in unsortedSongList)
             __instance.SongList.Add(song);
+        
 
         __instance.UnsortedSongList = unsortedSongList;
 
@@ -1332,7 +1338,6 @@ public class CustomMusicLoaderPatch
     [HarmonyWrapSafe]
     public static void UpdateDiffCourseAnim_Postfix(CourseSelect __instance)
     {
-        Log.LogInfo(nameof(UpdateDiffCourseAnim_Postfix));
         int num = __instance.selectedSongInfo.Stars[4] == 0 ? 4 : 5;
         for (int levelType = 0; levelType < num; ++levelType)
         {
@@ -1364,7 +1369,6 @@ public class CustomMusicLoaderPatch
     [HarmonyWrapSafe]
     public static void SetMyInfo_Postfix(SongSelectRankingBestScoreDisplay __instance, int musicUniqueId, EnsoData.EnsoLevelType ensoLevel)
     {
-        Log.LogInfo(nameof(SetMyInfo_Postfix));
         GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, 0, musicUniqueId, ensoLevel, out var dst);
         __instance.UpdateScoreDisplay(dst.normalHiScore);
     }
@@ -1374,7 +1378,6 @@ public class CustomMusicLoaderPatch
     [HarmonyWrapSafe]
     public static void UpdateDisplay_Postfix(CourseSelectScoreDisplay __instance, int musicUniqueId, EnsoData.EnsoLevelType levelType)
     {
-        Log.LogInfo(nameof(UpdateDisplay_Postfix));
         GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, __instance.playerType == DataConst.PlayerType.Player_1 ? 0 : 1, musicUniqueId, levelType, out var dst);
         var normalHiScore = dst.normalHiScore;
         for (int index = 0; index < 6; ++index)
@@ -1411,7 +1414,6 @@ public class CustomMusicLoaderPatch
     [HarmonyWrapSafe]
     public static void UpdateCrownNumDisplay_Postfix(SongSelectScoreDisplay __instance, int playerId)
     {
-        Log.LogInfo(nameof(UpdateCrownNumDisplay_Postfix));
         PlayDataManager playData = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData;
         var musicInfoAccessers = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.musicInfoAccessers;
         int[,] numArray = new int[3, 5];
@@ -1449,7 +1451,6 @@ public class CustomMusicLoaderPatch
     [HarmonyWrapSafe]
     public static void UpdateScoreDisplay_Postfix(SongSelectScoreDisplay __instance, int playerId, int musicUniqueId, bool enableUra)
     {
-        Log.LogInfo(nameof(UpdateScoreDisplay_Postfix));
         var num = enableUra ? 5 : 4;
 
         for (int levelType = 0; levelType < num; ++levelType)

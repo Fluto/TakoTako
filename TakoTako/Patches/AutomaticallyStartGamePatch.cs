@@ -1,7 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
+#if TAIKO_IL2CPP
 using Il2CppMicrosoft.Xbox;
-
+#elif TAIKO_MONO
+using Microsoft.Xbox;
+#endif
 namespace TakoTako.Patches;
 
 [HarmonyPatch]

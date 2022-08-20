@@ -10,7 +10,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BepInEx.Logging;
-using Blittables;
 using HarmonyLib;
 #if TAIKO_IL2CPP
 using UnhollowerBaseLib;
@@ -553,6 +552,7 @@ public class CustomMusicLoaderPatch
                 );
                 musicInfoAccessors.Add(musicInfo);
             }
+
             #endregion
 
             BubbleSort(musicInfoAccessors, (a, b) => a.Order - b.Order);
@@ -710,7 +710,7 @@ public class CustomMusicLoaderPatch
         wordDataInterface.wordListInfoAccessers = musicInfoAccessors;
 
         return wordDataInterface;
-        
+
         (string text, int font) GetValuesWordList(WordListInfo wordListInfo)
         {
             string text;
@@ -1018,7 +1018,6 @@ public class CustomMusicLoaderPatch
         __instance.SongList.Clear();
         foreach (var song in unsortedSongList)
             __instance.SongList.Add(song);
-        
 
         __instance.UnsortedSongList = unsortedSongList;
 
@@ -1663,13 +1662,13 @@ public class CustomMusicLoaderPatch
 
     [HarmonyPatch(typeof(Cryptgraphy), nameof(Cryptgraphy.ReadAllAesAndGZipBytes))]
     [HarmonyPrefix]
-    private static bool ReadAllAesAndGZipBytes_Prefix(string path, Cryptgraphy.AesKeyType type, 
-        #if TAIKO_IL2CPP
+    private static bool ReadAllAesAndGZipBytes_Prefix(string path, Cryptgraphy.AesKeyType type,
+#if TAIKO_IL2CPP
         ref Il2CppStructArray<byte> __result
-        #elif TAIKO_MONO
+#elif TAIKO_MONO
         ref byte[] __result
-        #endif
-        )
+#endif
+    )
     {
         if (pathToData.TryGetValue(path, out var data))
         {
@@ -1812,114 +1811,46 @@ public class CustomMusicLoaderPatch
 
     #region Read Song
 
-    private static readonly Regex musicFilePathRegex = new Regex("^song_(?<songName>.*?_custom_\\d*?)$");
+    private static readonly Regex sheetNameRegex = new Regex("^song_(?<songName>.*?_custom_\\d*?)$");
+    private static readonly Regex songFilePathRegex = new Regex("sound\\/(?<sheetName>.*?)\\.bin$");
 
-    /// <summary>
-    /// Read an unencrypted song "asynchronously" (it does it instantly, we should have fast enough PCs right?)
-    /// </summary>
-    /// <param name="__instance"></param>
-    [HarmonyPatch(typeof(CriPlayer), nameof(CriPlayer.LoadAsync))]
+    
+    [HarmonyPatch(typeof(Cryptgraphy), nameof(Cryptgraphy.ReadAllAesBytesAsyncInternal))]
     [HarmonyPrefix]
     [HarmonyWrapSafe]
-    public static bool LoadAsync_Postfix(CriPlayer __instance, 
-#if TAIKO_IL2CPP
-        ref Il2CppSystem.Collections.IEnumerator __result
-#elif TAIKO_MONO
-        ref IEnumerator __result
-#endif
-        )
+    public static bool ReadAllAesBytesAsyncInternal_Prefix(string path, Cryptgraphy.AesKeyType type, Cryptgraphy.Request request)
     {
-        var sheetName = __instance.CueSheetName;
-        var path = UnityEngine.Application.streamingAssetsPath + "/sound/" + sheetName + ".bin";
-
-        if (File.Exists(path))
+        var pathMatch = songFilePathRegex.Match(path);
+        if (!pathMatch.Success)
             return true;
 
-        var match = musicFilePathRegex.Match(sheetName);
-        if (!match.Success)
-        {
-            Log.LogError($"Cannot interpret {sheetName}");
+        var sheetName = pathMatch.Groups["sheetName"].Value;
+        var sheetNameMatch = sheetNameRegex.Match(sheetName);
+        if (!sheetNameMatch.Success)
             return true;
-        }
 
-        var songName = match.Groups["songName"].Value;
+        var songName = sheetNameMatch.Groups["songName"].Value;
         if (!idToSong.TryGetValue(songName, out var songInstance))
         {
             Log.LogError($"Cannot find song : {songName}");
             return true;
         }
-
-        __instance.isLoadingAsync = true;
-        __instance.isCancelLoadingAsync = false;
-        __instance.IsPrepared = false;
-        __instance.IsLoadSucceed = false;
-        __instance.LoadingState = CriPlayer.LoadingStates.Loading;
-        __instance.LoadTime = -1f;
-        __instance.loadStartTime = UnityEngine.Time.time;
         
-        // Run this on the next frame
-#if TAIKO_IL2CPP
-        __result = LoadAsync().WrapToIl2Cpp();
-#elif TAIKO_MONO
-        __result = LoadAsync();
-#endif
-        return false;
-
-        IEnumerator LoadAsync()
+        var newPath = Path.Combine(songInstance.FolderPath, $"{sheetName.Replace(songName, songInstance.SongName)}.bin");
+        
+        var bytes = File.ReadAllBytes(newPath);
+        if (songInstance.areFilesGZipped)
         {
-            yield return null;
-            
-            var newPath = Path.Combine(songInstance.FolderPath, $"{sheetName.Replace(songName, songInstance.SongName)}.bin");
-            var task = Task.Run(async () =>
-            {
-                try
-                {
-                    var bytes = File.ReadAllBytes(newPath);
-                    if (songInstance.areFilesGZipped)
-                    {
-                        using var memoryStream = new MemoryStream(bytes);
-                        using var destination = new MemoryStream();
-                        using var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress);
-                        await gzipStream.CopyToAsync(destination);
-                        bytes = destination.ToArray();
-                    }
-
-                    return bytes;
-                }
-                catch (Exception e)
-                {
-                    Log.LogError(e);
-                    return null;
-                }
-            });
-
-            do
-            {
-                yield return null;
-            } while (!task.IsCompleted);
-
-            var bytes = task.Result;
-            var cueSheet = CriAtom.AddCueSheetAsync(sheetName, bytes, null);
-
-            __instance.CueSheet = cueSheet;
-
-            if (cueSheet != null)
-            {
-                while (cueSheet.IsLoading)
-                    yield return null;
-
-                __instance.isLoadingAsync = false;
-                __instance.IsLoadSucceed = true;
-                __instance.LoadingState = CriPlayer.LoadingStates.Finished;
-                __instance.LoadTime = 0;
-                
-                yield break;
-            }
-
-            Log.LogError($"Could not load music");
-            __instance.LoadingState = CriPlayer.LoadingStates.Finished;
-            __instance.isLoadingAsync = false;
+            using var memoryStream = new MemoryStream(bytes);
+            using var destination = new MemoryStream();
+            using var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress);
+            gzipStream.CopyTo(destination);
+            bytes = destination.ToArray();
         }
+
+        request.Bytes = bytes;
+        request.IsDone = true;
+        return false;
     }
 
     /// <summary>
@@ -1935,7 +1866,7 @@ public class CustomMusicLoaderPatch
         if (File.Exists(path))
             return true;
 
-        var match = musicFilePathRegex.Match(sheetName);
+        var match = sheetNameRegex.Match(sheetName);
         if (!match.Success)
         {
             Log.LogError($"Cannot interpret {sheetName}");

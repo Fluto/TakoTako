@@ -110,8 +110,8 @@ namespace TakoTako
             
             ConfigAutomaticallyStartGame = Config.Bind("General",
                 "AutomaticallyStartGame",
-                true,
-                "When true this will continue on the main menu");
+                false,
+                "When true this will continue on the main menu ");
             
             ConfigSkipDLCCheck = Config.Bind("General",
                 "SkipDLCCheck",

@@ -1332,6 +1332,7 @@ public class CustomMusicLoaderPatch
     [HarmonyWrapSafe]
     public static void UpdateDiffCourseAnim_Postfix(CourseSelect __instance)
     {
+        Log.LogInfo(nameof(UpdateDiffCourseAnim_Postfix));
         int num = __instance.selectedSongInfo.Stars[4] == 0 ? 4 : 5;
         for (int levelType = 0; levelType < num; ++levelType)
         {
@@ -1358,48 +1359,12 @@ public class CustomMusicLoaderPatch
         }
     }
 
-    [HarmonyPatch(typeof(EnsoGameManager), nameof(EnsoGameManager.SetResults))]
-    [HarmonyPostfix]
-    [HarmonyWrapSafe]
-    public static void SetResults_Postfix(EnsoGameManager __instance)
-    {
-        TaikoCoreFrameResults frameResults = __instance.ensoParam.GetFrameResults();
-        for (int index = 0; index < __instance.settings.playerNum; ++index)
-        {
-            EnsoData.PlayerResult playerResult = __instance.ensoParam.GetPlayerResult(index);
-            var eachPlayer = frameResults.GetEachPlayer(index);
-            ref EachPlayer local = ref eachPlayer;
-            if (__instance.ensoParam.IsOnlineRankedMatch && index == 1)
-                __instance.SetEnsoInfoOnlineRecieve(ref local);
-            playerResult.level = __instance.settings.ensoPlayerSettings[index].courseType;
-            bool flag = frameResults.isAllOnpuEndPlayer[index];
-            playerResult.resultType = (double) local.tamashii >= (double) local.constTamashiiNorm ? DataConst.ResultType.NormaClear : DataConst.ResultType.NormaFailer;
-            if (((playerResult.resultType != DataConst.ResultType.NormaClear ? 0 : (local.countFuka == 0U ? 1 : 0)) & (flag ? 1 : 0)) != 0)
-                playerResult.resultType = DataConst.ResultType.Fullcombo;
-            playerResult.combomax = (int) local.maxCombo;
-            playerResult.rendatotal = (int) local.countRenda;
-            playerResult.hits = (int) local.countRyo + (int) local.countKa;
-            playerResult.score = (int) local.score;
-            playerResult.tamashii = local.tamashii;
-            playerResult.isAllOnpuEnd = flag;
-            GetPlayerRecordInfo(__instance.playDataMgr, index, __instance.settings.musicUniqueId, __instance.settings.ensoPlayerSettings[index].courseType, out var dst1);
-            playerResult.isHiScore = (int) local.score > dst1.normalHiScore.score;
-            playerResult.crown = DataConst.CrownType.None;
-            for (int crown = (int) playerResult.crown; (DataConst.CrownType) crown > dst1.crown; --crown)
-                playerResult.isNewCrown[crown] = true;
-
-            if (index == 0)
-                TaikoSingletonMonoBehaviour<CommonObjects>.Instance.CosmosLib._kpiListCommon._musicKpiInfo.SetEnsoResult1p(playerResult);
-            else
-                TaikoSingletonMonoBehaviour<CommonObjects>.Instance.CosmosLib._kpiListCommon._musicKpiInfo.SetEnsoResult2p(playerResult);
-        }
-    }
-
     [HarmonyPatch(typeof(SongSelectRankingBestScoreDisplay), nameof(SongSelectRankingBestScoreDisplay.SetMyInfo))]
     [HarmonyPostfix]
     [HarmonyWrapSafe]
     public static void SetMyInfo_Postfix(SongSelectRankingBestScoreDisplay __instance, int musicUniqueId, EnsoData.EnsoLevelType ensoLevel)
     {
+        Log.LogInfo(nameof(SetMyInfo_Postfix));
         GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, 0, musicUniqueId, ensoLevel, out var dst);
         __instance.UpdateScoreDisplay(dst.normalHiScore);
     }
@@ -1409,6 +1374,7 @@ public class CustomMusicLoaderPatch
     [HarmonyWrapSafe]
     public static void UpdateDisplay_Postfix(CourseSelectScoreDisplay __instance, int musicUniqueId, EnsoData.EnsoLevelType levelType)
     {
+        Log.LogInfo(nameof(UpdateDisplay_Postfix));
         GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, __instance.playerType == DataConst.PlayerType.Player_1 ? 0 : 1, musicUniqueId, levelType, out var dst);
         var normalHiScore = dst.normalHiScore;
         for (int index = 0; index < 6; ++index)
@@ -1445,6 +1411,7 @@ public class CustomMusicLoaderPatch
     [HarmonyWrapSafe]
     public static void UpdateCrownNumDisplay_Postfix(SongSelectScoreDisplay __instance, int playerId)
     {
+        Log.LogInfo(nameof(UpdateCrownNumDisplay_Postfix));
         PlayDataManager playData = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData;
         var musicInfoAccessers = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.musicInfoAccessers;
         int[,] numArray = new int[3, 5];
@@ -1482,6 +1449,7 @@ public class CustomMusicLoaderPatch
     [HarmonyWrapSafe]
     public static void UpdateScoreDisplay_Postfix(SongSelectScoreDisplay __instance, int playerId, int musicUniqueId, bool enableUra)
     {
+        Log.LogInfo(nameof(UpdateScoreDisplay_Postfix));
         var num = enableUra ? 5 : 4;
 
         for (int levelType = 0; levelType < num; ++levelType)

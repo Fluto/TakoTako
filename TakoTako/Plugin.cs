@@ -11,6 +11,7 @@ using BepInEx.IL2CPP.Utils;
 using BepInEx.IL2CPP;
 #endif
 
+#pragma warning disable BepInEx002
 namespace TakoTako
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]

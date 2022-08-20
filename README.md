@@ -17,7 +17,7 @@ Currently has the features:
 - <b>Mono</b>: 1.1.0.0 - 1.2.2.0
 </p>
 <p>
-- <b>Il2CPP</b>: 1.3.0.0 - 1.6.00
+- <b>Il2CPP</b>: 1.3.0.0 - 1.7.00
 </p>
 </details>
 

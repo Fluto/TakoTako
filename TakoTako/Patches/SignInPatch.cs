@@ -5,7 +5,8 @@ using Microsoft.Xbox;
 #if TAIKO_IL2CPP
 using Il2CppMicrosoft.Xbox;
 #endif
-namespace TakoTako;
+
+namespace TakoTako.Patches;
 
 /// <summary>
 /// This patch will address the issue where signing with GDK is done correctly

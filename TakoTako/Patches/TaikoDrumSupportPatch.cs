@@ -8,12 +8,12 @@ using Array = Il2CppSystem.Array;
 using UnhollowerBaseLib;
 #endif
 
-namespace TakoTako;
+namespace TakoTako.Patches;
 
 [HarmonyPatch]
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 [SuppressMessage("Member Access", "Publicizer001:Accessing a member that was not originally public")]
-public class TaikoDrumSupport
+public class TaikoDrumSupportPatch
 {
     private const float analogThreshold = 0.333f;
 

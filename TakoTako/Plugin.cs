@@ -4,6 +4,7 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using TakoTako.Patches;
 using UnityEngine;
 #if TAIKO_IL2CPP
 using BepInEx.IL2CPP.Utils;
@@ -132,26 +133,26 @@ namespace TakoTako
             _harmony = new Harmony(PluginInfo.PLUGIN_GUID);
 
             if (ConfigSkipSplashScreen.Value)
-                _harmony.PatchAll(typeof(SkipSplashScreen));
+                _harmony.PatchAll(typeof(SkipSplashScreenPatch));
 
             if (ConfigFixSignInScreen.Value)
                 _harmony.PatchAll(typeof(SignInPatch));
 
             if (ConfigDisableScreenChangeOnFocus.Value)
-                _harmony.PatchAll(typeof(DisableScreenChangeOnFocus));
+                _harmony.PatchAll(typeof(DisableScreenChangeOnFocusPatch));
 
             if (ConfigEnableTaikoDrumSupport.Value)
-                _harmony.PatchAll(typeof(TaikoDrumSupport));
+                _harmony.PatchAll(typeof(TaikoDrumSupportPatch));
 
             #if TAIKO_IL2CPP
             if (ConfigSkipDLCCheck.Value)
-                _harmony.PatchAll(typeof(SkipDLCCheck));
+                _harmony.PatchAll(typeof(SkipDLCCheckPatch));
             #endif
     
             if (ConfigEnableCustomSongs.Value)
             {
-                _harmony.PatchAll(typeof(MusicPatch));
-                MusicPatch.Setup(_harmony);
+                _harmony.PatchAll(typeof(CustomMusicLoaderPatch));
+                CustomMusicLoaderPatch.Setup(_harmony);
             }
         }
 

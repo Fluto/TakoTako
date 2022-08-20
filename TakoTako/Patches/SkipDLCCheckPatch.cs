@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
 
-namespace TakoTako;
+namespace TakoTako.Patches;
 
 #if TAIKO_IL2CPP
 [SuppressMessage("ReSharper", "InconsistentNaming")]
-public class SkipDLCCheck
+public class SkipDLCCheckPatch
 {
     private static SongSelectManager songSelectManager;
     

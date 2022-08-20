@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
 
-namespace TakoTako;
+namespace TakoTako.Patches;
 
 [HarmonyPatch]
 [SuppressMessage("ReSharper", "InconsistentNaming")]
-public class SkipSplashScreen
+public class SkipSplashScreenPatch
 {
     /// <summary>
     /// Simply load the next scene, I don't think this scene does anything specific?

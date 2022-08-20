@@ -1,9 +1,9 @@
 ﻿using HarmonyLib;
 
-namespace TakoTako;
+namespace TakoTako.Patches;
 
 [HarmonyPatch]
-public class DisableScreenChangeOnFocus
+public class DisableScreenChangeOnFocusPatch
 {
     [HarmonyPatch(typeof(FocusManager), "OnApplicationFocus")]
     [HarmonyPrefix]

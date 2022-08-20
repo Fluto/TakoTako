@@ -23,14 +23,14 @@ using SongSelectRanking;
 using TakoTako.Common;
 using UnityEngine;
 
-namespace TakoTako;
+namespace TakoTako.Patches;
 
 /// <summary>
 /// This will allow custom songs to be read in
 /// </summary>
 [HarmonyPatch]
 [SuppressMessage("ReSharper", "InconsistentNaming")]
-public class MusicPatch
+public class CustomMusicLoaderPatch
 {
     public static int SaveDataMax => DataConst.MusicMax;
 

@@ -264,7 +264,7 @@ public class CustomMusicLoaderPatch
                             }
                         }
 
-                        File.WriteAllText(Path.Combine(musicDirectory, "conversion.json"), JsonConvert.SerializeObject(conversionStatus), Encoding.Unicode);
+                        File.WriteAllText(Path.Combine(musicDirectory, "conversion.json"), JsonConvert.SerializeObject(conversionStatus, Formatting.Indented), Encoding.Unicode);
                     }
                     catch (Exception e)
                     {
@@ -306,7 +306,7 @@ public class CustomMusicLoaderPatch
                         }
 
                         song.areFilesGZipped = true;
-                        File.WriteAllText(dataPath, JsonConvert.SerializeObject(song));
+                        File.WriteAllText(dataPath, JsonConvert.SerializeObject(song, Formatting.Indented));
 
                         SubmitDirectory(directory, true);
                     }

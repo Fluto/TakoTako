@@ -29,7 +29,7 @@
         <LangVersion>latest</LangVersion>
         <Configurations>Release-BepInEx6;Release-BepInEx5;Debug-BepInEx6;Debug-BepInEx5</Configurations>
         <Platforms>AnyCPU</Platforms>
-        <TargetFrameworks>net48;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>netstandard2.0</TargetFrameworks>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release-BepInEx5' ">

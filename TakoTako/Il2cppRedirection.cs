@@ -1,10 +1,9 @@
 ﻿#if TAIKO_IL2CPP
 using HarmonyLib;
+using Il2CppInterop.Common.Attributes;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem;
-using UnhollowerBaseLib;
-using UnhollowerBaseLib.Attributes;
-using UnhollowerBaseLib.Runtime;
-using Il2CppException = UnhollowerBaseLib.Il2CppException;
 
 namespace TakoTako;
 
@@ -20,7 +19,9 @@ public static class Il2cppRedirection
         var outPtr = IntPtr.Zero;
         numPtr[1] = (System.IntPtr) (&outPtr);
         System.IntPtr exc = System.IntPtr.Zero;
-        var field = (System.IntPtr) AccessTools.Field(typeof(PlayDataManager), "NativeMethodInfoPtr_GetMusicInfoExAll_Public_Void_Int32_byref_ArrayOf_MusicInfoEx_0").GetValue(null);
+        var fieldInfo = AccessTools.Field(typeof(PlayDataManager), "NativeMethodInfoPtr_GetMusicInfoExAll_Public_Void_Int32_byref_Il2CppStructArray_1_MusicInfoEx_0") ??
+            AccessTools.Field(typeof(PlayDataManager), "NativeMethodInfoPtr_GetMusicInfoExAll_Public_Void_Int32_byref_ArrayOf_MusicInfoEx_0");
+        var field = (System.IntPtr)fieldInfo.GetValue(null);
         IL2CPP.il2cpp_runtime_invoke(field, IL2CPP.Il2CppObjectBaseToPtrNotNull(instance), (void**) numPtr, ref exc);
         dst = new Il2CppStructArray<MusicInfoEx>(outPtr);
         Il2CppException.RaiseExceptionIfNecessary(exc);

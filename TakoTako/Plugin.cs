@@ -7,8 +7,8 @@ using HarmonyLib;
 using TakoTako.Patches;
 using UnityEngine;
 #if TAIKO_IL2CPP
-using BepInEx.IL2CPP.Utils;
-using BepInEx.IL2CPP;
+using BepInEx.Unity.IL2CPP.Utils;
+using BepInEx.Unity.IL2CPP;
 #endif
 
 #pragma warning disable BepInEx002

@@ -12,8 +12,7 @@ using System.Threading.Tasks;
 using BepInEx.Logging;
 using HarmonyLib;
 #if TAIKO_IL2CPP
-using UnhollowerBaseLib;
-using BepInEx.IL2CPP.Utils.Collections;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Object = Il2CppSystem.Object;
 #endif
 using Newtonsoft.Json;

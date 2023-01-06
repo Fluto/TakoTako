@@ -3,9 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using HarmonyLib;
 using UnityEngine;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes;
 #if TAIKO_IL2CPP
 using Array = Il2CppSystem.Array;
-using UnhollowerBaseLib;
 #endif
 
 namespace TakoTako.Patches;

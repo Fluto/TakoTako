@@ -27,7 +27,7 @@
     </PropertyGroup>
     
     <PropertyGroup>
-        <TargetFramework Condition="$(DefineConstants.Contains('TAIKO_IL2CPP'))">netstandard2.1</TargetFramework>
+        <TargetFramework Condition="$(DefineConstants.Contains('TAIKO_IL2CPP'))">net6.0</TargetFramework>
         <TargetFramework Condition="$(DefineConstants.Contains('TAIKO_MONO'))">net48</TargetFramework>
         <AssemblyName>com.fluto.takotako</AssemblyName>
         <Description>A suite of mods that allow for Custom Songs and Taiko Drum support</Description>
@@ -42,8 +42,8 @@
     </PropertyGroup>
 
     <ItemGroup Condition="$(DefineConstants.Contains('TAIKO_IL2CPP'))">
-        <PackageReference Include="BepInEx.IL2CPP" Version="6.0.0-be.574" IncludeAssets="compile" />
-        <Reference Include="$(GameDir)\BepInEx\unhollowed\*.dll" Private="false" />
+        <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.663" />
+        <Reference Include="$(GameDir)\BepInEx\interop\*.dll" Private="false" />
     </ItemGroup>
 
     <ItemGroup Condition="$(DefineConstants.Contains('TAIKO_MONO'))">

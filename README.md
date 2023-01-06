@@ -172,3 +172,8 @@ TextEntry {
 - [SonicAudioTools](https://github.com/blueskythlikesclouds/SonicAudioTools)
 - [VGAudio](https://github.com/Thealexbarney/VGAudio)
 - Pulsar#5356 for the TJA2BIN.exe
+
+## Licensing
+Uses the following licensed libraries.
+- [SimpleHelpers.Net FileEncoding](https://github.com/khalidsalomao/SimpleHelpers.Net) (MIT License)
+- [UDE.CSharp](https://github.com/errepi/ude) (MPL 1.1, including GPL 2.0, and LGPL 2.1)

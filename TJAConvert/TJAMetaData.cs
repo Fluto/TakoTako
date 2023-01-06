@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using SimpleHelpers;
 
 namespace TJAConvert;
 
@@ -44,8 +45,8 @@ internal class TJAMetadata
     public TJAMetadata(string tjaPath)
     {
         Id = Path.GetFileNameWithoutExtension(tjaPath);
-
-        var lines = File.ReadLines(tjaPath).ToList();
+        var encoding = FileEncoding.DetectFileEncoding(tjaPath);
+        var lines = File.ReadLines(tjaPath, encoding).ToList();
 
         Title = FindAndGetField("TITLE");
         TitleJA = FindAndGetField("TITLEJA");

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release-BepInEx6' ">
         <Optimize Condition=" '$(Optimize)' == '' ">true</Optimize>
@@ -56,6 +56,7 @@
         <PackageReference Include="NAudio.Core" Version="2.0.0" />
         <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="UDE.CSharp" Version="1.1.0" />
         <PackageReference Include="VGAudio" Version="2.2.1" />
     </ItemGroup>
 

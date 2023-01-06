@@ -17,6 +17,7 @@ using SonicAudioLib.CriMw;
 using TakoTako.Common;
 using VGAudio.Containers.Hca;
 using VGAudio.Containers.Wave;
+using SimpleHelpers;
 
 namespace TJAConvert
 {
@@ -88,13 +89,18 @@ namespace TJAConvert
                     }
                     catch
                     {
+                        Console.WriteLine("TJA Metadata is invalid, or points to invalid paths.");
                         return -2;
                     }
 
                     var originalAudioPath = $"{directory}/{metadata.AudioPath}";
 
                     if (!File.Exists(originalAudioPath))
+                    {
+                        Console.WriteLine("Audio path does not exist. Check WAVE field in TJA.");
                         return -2;
+                    }
+                        
 
                     var newDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
                     var tempOutDirectory = Path.Combine(newDirectory, Guid.NewGuid().ToString());
@@ -406,6 +412,7 @@ namespace TJAConvert
                 }
                 catch
                 {
+                    Console.WriteLine("TJA Metadata during Fumens convesion process was invalid.");
                     return -2;
                 }
             }
@@ -425,6 +432,7 @@ namespace TJAConvert
                 }
                 catch
                 {
+                    Console.WriteLine("TJA Metadata while reading courses was invalid.");
                     return -2;
                 }
             }
@@ -449,7 +457,8 @@ namespace TJAConvert
         {
             var directory = Path.GetDirectoryName(newPath);
             var fileName = Path.GetFileNameWithoutExtension(newPath);
-            var lines = File.ReadAllLines(newPath).ToList();
+            var encoding = FileEncoding.DetectFileEncoding(newPath);
+            var lines = File.ReadAllLines(newPath, encoding).ToList();
 
             int courseStartIndex = lines.FindLastIndex(x =>
             {
@@ -475,7 +484,7 @@ namespace TJAConvert
                     file.AddRange(lines.GetRange(course.SongDataIndexStart, course.SongDataIndexEnd - course.SongDataIndexStart + 1));
 
                     var path = $"{directory}/{fileName}.tja";
-                    File.WriteAllLines(path, file);
+                    File.WriteAllLines(path, file, encoding);
 
                     var passed = await Convert(path, directory, tjaHash);
                     if (passed < 0)
@@ -491,7 +500,7 @@ namespace TJAConvert
                 }
             }
 
-            File.WriteAllLines(newPath, lines);
+            File.WriteAllLines(newPath, lines, encoding);
 
             return 0;
         }
@@ -503,7 +512,8 @@ namespace TJAConvert
         {
             var directory = Path.GetDirectoryName(newPath);
             var fileName = Path.GetFileNameWithoutExtension(newPath);
-            var lines = File.ReadAllLines(newPath).ToList();
+            var encoding = FileEncoding.DetectFileEncoding(newPath);
+            var lines = File.ReadAllLines(newPath, encoding).ToList();
 
             // first thing to do is inject missing metadata
             for (int i = metadata.Courses.Count - 1; i >= 0; i--)
@@ -516,7 +526,7 @@ namespace TJAConvert
                 lines.Insert(course.CourseDataIndexStart + 1 + courseData.Count, "");
             }
 
-            File.WriteAllLines(newPath, lines);
+            File.WriteAllLines(newPath, lines, encoding);
 
             try
             {
@@ -524,6 +534,7 @@ namespace TJAConvert
             }
             catch
             {
+                Console.WriteLine("TJA Metadata while splicing doubles was invalid.");
                 return -2;
             }
 
@@ -537,7 +548,7 @@ namespace TJAConvert
                     return passed;
             }
 
-            File.WriteAllLines(newPath, lines);
+            File.WriteAllLines(newPath, lines, encoding);
             return 0;
         }
 
@@ -619,6 +630,7 @@ namespace TJAConvert
             }
             catch
             {
+                Console.WriteLine("TJA Metadata read during conversion was invalid");
                 return -2;
             }
 
@@ -634,8 +646,9 @@ namespace TJAConvert
                     newPath = $"{outputPath}\\{fileName}_{coursePostfix}.tja";
             }
 
-            var lines = ApplyGeneralFixes(File.ReadAllLines(tjaPath).ToList());
-            File.WriteAllLines(newPath, lines);
+            var encoding = FileEncoding.DetectFileEncoding(tjaPath);
+            var lines = ApplyGeneralFixes(File.ReadAllLines(tjaPath, encoding).ToList());
+            File.WriteAllLines(newPath, lines, encoding);
 
             var currentDirectory = Environment.CurrentDirectory;
             var exePath = $"{currentDirectory}/tja2bin.exe";
@@ -686,7 +699,23 @@ namespace TJAConvert
 
                     // todo: Not sure how to solve this, so ignore it for now
                     if (result.Contains("branches must have same measure count"))
+                    {
+                        Console.WriteLine("TJA is invalid, branches do not have same measure count.");
                         return -2;
+                    }
+
+                    //Provide useful output when the metadata is bad
+                    if (result.Contains("invalid Metadata"))
+                    {
+                        Console.WriteLine(result);
+                        return -2;
+                    }
+                    //output any lines where there are warnings to aid with troubleshooting.
+                    if (result.Contains("warning"))
+                    {
+                        Console.WriteLine(Regex.Match(result, "warning:.*"));
+                    }
+
 
                     async Task RunProcess()
                     {
@@ -737,7 +766,7 @@ namespace TJAConvert
                             x = x.Substring(0, commentIndex);
 
                         // remove unwanted characters in tracks
-                        if (x.Trim().EndsWith(","))
+                        if (x.Trim().EndsWith(",") && !x.Trim().Contains(":"))
                             x = Regex.Replace(x, "[^\\d,ABF]", "");
 
                         // if there's no scores, give them an arbitrary score

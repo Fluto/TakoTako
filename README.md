@@ -51,7 +51,7 @@ Here you can enable each individual feature or redirect where custom songs will 
 With this feature you can inject custom songs into the game!
 To begin place custom songs in `SongDirectory` specified in your configuration file, by default this is `%userprofile%/Documents/TakoTako/customSongs`
 Each song must have it's own directory with a unique name. 
-These songs can be nested within folders.
+These songs can be nested within folders.  
 
 The folder must have this structure:
 ```
@@ -78,7 +78,7 @@ Offical Songs
 TJA
 -- [MUSIC_ID]
 ---- [MUSIC_ID].tja
----- song_[MUSIC_ID].ogg or .wav
+---- [MUSIC_ID].ogg or .wav
 
 Genre override
 e.g. this will override the songs to pop
@@ -162,6 +162,10 @@ TextEntry {
     int krFont; (langauge override for 영어 text)
 }
 ```
+
+### TJA Format
+This project features encoding detection and should be able to handle both SHIFT-JIS and UTF-8 encoded TJAs. For extracting SHIFT-JIS (Japanese) format zip files, under windows you can use a program like bandizip which supports changing the codepage to Japanese. Under linux you can use something to this effect: `export 	
+LANG=ja_JP` followed by `7z x path/to/zip`. This will correct the mojibake (garbled file names) and ensure that the song file matches the `WAVE:` field in the provided TJA. 
 
 ---
 ## Contributers

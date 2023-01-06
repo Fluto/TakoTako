@@ -31,12 +31,12 @@
         <TargetFramework Condition="$(DefineConstants.Contains('TAIKO_MONO'))">net48</TargetFramework>
         <AssemblyName>com.fluto.takotako</AssemblyName>
         <Description>A suite of mods that allow for Custom Songs and Taiko Drum support</Description>
-        <Version>3.1.0</Version>
+        <Version>3.1.1</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <RootNamespace>TakoTako</RootNamespace>
         <PackageId>com.fluto.takotako</PackageId>
-        <PackageVersion>3.1.0</PackageVersion>
+        <PackageVersion>3.1.1</PackageVersion>
         <Configurations>Release-BepInEx6;Release-BepInEx5;Debug-BepInEx6;Debug-BepInEx5</Configurations>
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>

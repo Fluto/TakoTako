@@ -35,6 +35,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Folder Include="UDE.CSharp\" />
         <Folder Include="References" />
     </ItemGroup>
 

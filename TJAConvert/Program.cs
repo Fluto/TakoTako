@@ -484,7 +484,7 @@ namespace TJAConvert
                     file.AddRange(lines.GetRange(course.SongDataIndexStart, course.SongDataIndexEnd - course.SongDataIndexStart + 1));
 
                     var path = $"{directory}/{fileName}.tja";
-                    File.WriteAllLines(path, file, encoding);
+                    File.WriteAllLines(path, file);
 
                     var passed = await Convert(path, directory, tjaHash);
                     if (passed < 0)
@@ -500,7 +500,7 @@ namespace TJAConvert
                 }
             }
 
-            File.WriteAllLines(newPath, lines, encoding);
+            File.WriteAllLines(newPath, lines);
 
             return 0;
         }
@@ -526,7 +526,7 @@ namespace TJAConvert
                 lines.Insert(course.CourseDataIndexStart + 1 + courseData.Count, "");
             }
 
-            File.WriteAllLines(newPath, lines, encoding);
+            File.WriteAllLines(newPath, lines);
 
             try
             {
@@ -548,7 +548,7 @@ namespace TJAConvert
                     return passed;
             }
 
-            File.WriteAllLines(newPath, lines, encoding);
+            File.WriteAllLines(newPath, lines);
             return 0;
         }
 
@@ -648,7 +648,7 @@ namespace TJAConvert
 
             var encoding = FileEncoding.DetectFileEncoding(tjaPath);
             var lines = ApplyGeneralFixes(File.ReadAllLines(tjaPath, encoding).ToList());
-            File.WriteAllLines(newPath, lines, encoding);
+            File.WriteAllLines(newPath, lines);
 
             var currentDirectory = Environment.CurrentDirectory;
             var exePath = $"{currentDirectory}/tja2bin.exe";
@@ -705,7 +705,7 @@ namespace TJAConvert
                     }
 
                     //Provide useful output when the metadata is bad
-                    if (result.Contains("invalid Metadata"))
+                    if (result.Contains("invalid metadata"))
                     {
                         Console.WriteLine(result);
                         return -2;

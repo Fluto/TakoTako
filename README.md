@@ -28,7 +28,7 @@ Currently has the features:
 2. Download [BepInEx](https://builds.bepinex.dev/projects/bepinex_be). 
 > If you're using a newer version of Taiko 1.3.0.0 or higher (you probably are) download the IL2CPP version `BepInEx_UnityIL2CPP_x64_XXXXX.zip`.If you're using a downgraded version of Taiko (1.2.2.0 on lower) download the "Mono" build, called something like `BepInEx_UnityMono_x64_XXXXX.zip`.
 
-> If you are upgrading from TakoTako v3.1.0 make sure you grab the latest BepInEx build as this mod requires the newest version (at the time of writing `#665 6aabdb5` is the latest build) 
+> If you are upgrading from TakoTako v3.1.0 make sure you grab the latest BepInEx build as this mod requires the newest version (at the time of writing `#670 42a6727` is the latest build) 
 3. Go to where you installed your game, for example `C:\XboxGames\T Tablet\Content`
 4. Paste all of the files from the .zip from step 5 into this folder
 (It will look something like this)\

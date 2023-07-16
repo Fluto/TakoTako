@@ -77,7 +77,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Executables\tja2bin.exe" />
+        <None Remove="Executables\tja2fumen.exe" />
         <None Remove="Executables\**" />
         <None Remove="Exes\**" />
     </ItemGroup>
@@ -98,7 +98,7 @@
 
     <Target Name="PostBuildCopy" AfterTargets="PostBuildEvent">
         <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
-        <Copy SourceFiles="$(ProjectDir)\Executables\tja2bin.exe" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
+        <Copy SourceFiles="$(ProjectDir)\Executables\tja2fumen.exe" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
         <Copy SourceFiles="$(ProjectDir)\Executables\TJAConvert.exe" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
     </Target>
 </Project>

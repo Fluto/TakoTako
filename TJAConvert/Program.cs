@@ -225,7 +225,7 @@ namespace TJAConvert
                     branchMania = false,
                     branchUra = false,
                     previewPos = (int) (metadata.PreviewTime * 1000) + addedTime,
-                    fumenOffsetPos = (int) (metadata.Offset * 10) + (addedTime),
+                    fumenOffsetPos = /*(int) (metadata.Offset * 1000) +*/ (addedTime), // tja2bin and tja2fumen use this value, so it can be ignored here :)
                     tjaFileHash = tjaHash,
                     songName = new TextEntry()
                     {

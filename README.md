@@ -56,6 +56,11 @@ To begin place custom songs in `SongDirectory` specified in your configuration f
 Each song must have it's own directory with a unique name. 
 These songs can be nested within folders.  
 
+### Updating tja2fumen
+tja2fumen is developed by [vivaria](https://github.com/vivaria) and may be updated over time. If there is a new update feel free to grab their latest version for their tja conversion program at https://github.com/vivaria/tja2fumen/releases/latest.
+After downloading the .exe file, place it in your `.\BepInEx\plugins\com.fluto.takotako` folder :)
+
+### Structure
 The folder must have this structure:
 ```
 Offical Songs
@@ -178,7 +183,8 @@ LANG=ja_JP` followed by `7z x path/to/zip`. This will correct the mojibake (garb
 ## Credits 
 - [SonicAudioTools](https://github.com/blueskythlikesclouds/SonicAudioTools)
 - [VGAudio](https://github.com/Thealexbarney/VGAudio)
-- Pulsar#5356 for the TJA2BIN.exe
+- [tja2fumen](https://github.com/vivaria/tja2fumen) Thank you vivaria for making an open source tja interpreter!
+- Pulsar#5356 for their previous work on TJA2BIN.exe
 
 ## Licensing
 Uses the following licensed libraries.

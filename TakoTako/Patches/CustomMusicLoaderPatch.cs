@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -75,7 +76,7 @@ public class CustomMusicLoaderPatch
             else
             {
                 using var fileStream = File.OpenRead(savePath);
-                data = (CustomMusicSaveDataBody) JsonConvert.DeserializeObject<CustomMusicSaveDataBodySerializable>(File.ReadAllText(savePath));
+                data = (CustomMusicSaveDataBody)JsonConvert.DeserializeObject<CustomMusicSaveDataBodySerializable>(File.ReadAllText(savePath));
                 data.CustomTrackToEnsoRecordInfo ??= new System.Collections.Generic.Dictionary<int, EnsoRecordInfo[]>();
                 data.CustomTrackToMusicInfoEx ??= new System.Collections.Generic.Dictionary<int, MusicInfoEx>();
             }
@@ -119,7 +120,7 @@ public class CustomMusicLoaderPatch
                 {
                     var data = GetCustomSaveData();
                     var savePath = SaveFilePath;
-                    var json = JsonConvert.SerializeObject((CustomMusicSaveDataBodySerializable) data);
+                    var json = JsonConvert.SerializeObject((CustomMusicSaveDataBodySerializable)data);
 
                     using Stream fs = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough);
                     using var streamWriter = new StreamWriter(fs);
@@ -174,10 +175,12 @@ public class CustomMusicLoaderPatch
                     Log.LogError(e);
                 }
             });
-
             var tjaPaths = Directory.GetFiles(MusicTrackDirectory, "*.tja", SearchOption.AllDirectories).Select(Path.GetDirectoryName).Distinct().ToList();
             // convert / add TJA songs
-            Parallel.ForEach(tjaPaths, new ParallelOptions() {MaxDegreeOfParallelism = 4}, musicDirectory =>
+            Parallel.ForEach(tjaPaths, new ParallelOptions()
+            {
+                MaxDegreeOfParallelism = 4
+            }, musicDirectory =>
             {
                 try
                 {
@@ -200,11 +203,14 @@ public class CustomMusicLoaderPatch
                     {
                         var pathName = Path.GetFileName(musicDirectory);
                         var pluginDirectory = @$"{Environment.CurrentDirectory}\BepInEx\plugins\{PluginInfo.PLUGIN_GUID}";
+                        
                         var tjaConvertPath = @$"{pluginDirectory}\TJAConvert.exe";
-                        var tja2BinConvertPath = @$"{pluginDirectory}\tja2bin.exe";
-                        if (!File.Exists(tjaConvertPath) || !File.Exists(tja2BinConvertPath))
+                        var tja2FumenConvertPath = GetTja2FumenPath();
+                        
+                        if (!File.Exists(tjaConvertPath) || string.IsNullOrWhiteSpace(tja2FumenConvertPath) || !File.Exists(tja2FumenConvertPath))
                             throw new Exception("Cannot find .exes in plugin folder");
 
+                        Log.LogInfo($"Using {tja2FumenConvertPath} for generating TJAs");
                         Log.LogInfo($"Converting {pathName}");
                         var info = new ProcessStartInfo()
                         {
@@ -222,7 +228,7 @@ public class CustomMusicLoaderPatch
                         process.StartInfo = info;
                         process.Start();
                         var result = process.StandardOutput.ReadToEnd();
-                        var resultLines = result.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.RemoveEmptyEntries);
+                        var resultLines = result.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
                         foreach (var line in resultLines)
                         {
@@ -325,6 +331,52 @@ public class CustomMusicLoaderPatch
 
         return customSongsList;
 
+        string GetTja2FumenPath()
+        {
+            // determine conversion program
+            var pluginDirectory = @$"{Environment.CurrentDirectory}\BepInEx\plugins\{PluginInfo.PLUGIN_GUID}";
+            // var tjaConvertPath = @$"{pluginDirectory}\TJAConvert.exe";
+            var files = Directory
+                .EnumerateFiles(pluginDirectory)
+                .Where(x =>
+                    x.Contains("tja2fumen", StringComparison.InvariantCultureIgnoreCase)
+                    && x.EndsWith(".exe", StringComparison.InvariantCultureIgnoreCase)).ToList();
+
+            // if something is just called tja2fumen.exe use that
+            var foundFile = files.FirstOrDefault(x => x.Contains("tja2fumen.exe", StringComparison.InvariantCultureIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(foundFile))
+                return foundFile;
+
+            var regex = new Regex(@"tja2fumen\-(?<VERSION>\d?.?\d+.\d+.\d+)\.exe");
+            var versionPaths = files
+                .Select(x =>
+                {
+                    var match = regex.Match(x);
+                    Version version = null;
+                    if (match.Success)
+                        Version.TryParse(match.Groups["VERSION"].Value, out version);
+
+                    return (x, version);
+                })
+                .Where(x => x.version != null)
+                .OrderByDescending(x => x.version)
+                .FirstOrDefault();
+
+            // try and pick the last version
+            if (versionPaths.version != null)
+                return versionPaths.x;
+
+            // just pick the first one
+            if (files.Count > 0)
+                return files[0];
+
+            var originalPath = @$"{pluginDirectory}\tja2bin.exe";
+            if (File.Exists(originalPath))
+                return originalPath;
+
+            return null;
+        }
+
         void SubmitDirectory(string directory, bool isTjaSong)
         {
             var dataPath = Path.Combine(directory, "data.json");
@@ -382,7 +434,7 @@ public class CustomMusicLoaderPatch
             else
             {
                 // For official songs, we can just use the hash of the song internal name.
-                song.UniqueId = (int) (MurmurHash2.Hash(song.id) & 0xFFFF_FFF);
+                song.UniqueId = (int)(MurmurHash2.Hash(song.id) & 0xFFFF_FFF);
             }
 
             if (song.UniqueId <= SaveDataMax)
@@ -490,62 +542,23 @@ public class CustomMusicLoaderPatch
                     false,
                     0,
                     true, // can we capture footage
-                    2, // Always mark custom songs as "both players need to have this song to play it"
-                    new[]
-                    {
-                        song.branchEasy,
-                        song.branchNormal,
-                        song.branchHard,
-                        song.branchMania,
-                        song.branchUra
-                    }, new[]
-                    {
-                        song.starEasy,
-                        song.starNormal,
-                        song.starHard,
-                        song.starMania,
-                        song.starUra
-                    }, new[]
-                    {
-                        song.shinutiEasy,
-                        song.shinutiNormal,
-                        song.shinutiHard,
-                        song.shinutiMania,
-                        song.shinutiUra
-                    }, new[]
-                    {
-                        song.shinutiEasyDuet,
-                        song.shinutiNormalDuet,
-                        song.shinutiHardDuet,
-                        song.shinutiManiaDuet,
-                        song.shinutiUraDuet
-                    }, new[]
-                    {
-                        song.scoreEasy,
-                        song.scoreNormal,
-                        song.scoreHard,
-                        song.scoreMania,
-                        song.scoreUra
-                    }
+                    2,    // Always mark custom songs as "both players need to have this song to play it"
+                    new[] { song.branchEasy, song.branchNormal, song.branchHard, song.branchMania, song.branchUra },
+                    new[] { song.starEasy, song.starNormal, song.starHard, song.starMania, song.starUra },
+                    new[] { song.shinutiEasy, song.shinutiNormal, song.shinutiHard, song.shinutiMania, song.shinutiUra },
+                    new[] { song.shinutiEasyDuet, song.shinutiNormalDuet, song.shinutiHardDuet, song.shinutiManiaDuet, song.shinutiUraDuet },
+                    new[] { song.scoreEasy, song.scoreNormal, song.scoreHard, song.scoreMania, song.scoreUra }
 #if TAIKO_IL2CPP
-                    , 0, // no idea what this is, going to mark them as default for now :)
+                    , 0,          // no idea what this is, going to mark them as default for now :)
                     string.Empty, // no idea what this is, going to mark them as default for now :)
                     string.Empty, // no idea what this is, going to mark them as default for now :)
-                    false, // no idea what this is, going to mark them as default for now :),
-                    new[] // no idea what this is, setting it to shinuti score
+                    false,        // no idea what this is, going to mark them as default for now :),
+                    new[]         // no idea what this is, setting it to shinuti score
                     {
-                        song.shinutiEasy,
-                        song.shinutiNormal,
-                        song.shinutiHard,
-                        song.shinutiMania,
-                        song.shinutiUra
+                        song.shinutiEasy, song.shinutiNormal, song.shinutiHard, song.shinutiMania, song.shinutiUra
                     }, new[] // no idea what this is, setting it to shinuti duet score
                     {
-                        song.shinutiEasyDuet,
-                        song.shinutiNormalDuet,
-                        song.shinutiHardDuet,
-                        song.shinutiManiaDuet,
-                        song.shinutiUraDuet
+                        song.shinutiEasyDuet, song.shinutiNormalDuet, song.shinutiHardDuet, song.shinutiManiaDuet, song.shinutiUraDuet
                     }
 #endif
                 );
@@ -966,7 +979,7 @@ public class CustomMusicLoaderPatch
 
                     for (int k = 0; k < 5; k++)
                     {
-                        GetPlayerRecordInfo(playDataMgr, 0, musicInfoAccess[j].UniqueId, (EnsoData.EnsoLevelType) k, out var dst4);
+                        GetPlayerRecordInfo(playDataMgr, 0, musicInfoAccess[j].UniqueId, (EnsoData.EnsoLevelType)k, out var dst4);
                         song2.NotPlayed[k] = dst4.playCount <= 0;
                         song2.NotCleared[k] = dst4.crown < DataConst.CrownType.Silver;
                         song2.NotFullCombo[k] = dst4.crown < DataConst.CrownType.Gold;
@@ -981,7 +994,7 @@ public class CustomMusicLoaderPatch
                         song2.HighScores[k].crown = dst4.crown;
 #endif
 
-                        GetPlayerRecordInfo(playDataMgr, 1, musicInfoAccess[j].UniqueId, (EnsoData.EnsoLevelType) k, out var dst5);
+                        GetPlayerRecordInfo(playDataMgr, 1, musicInfoAccess[j].UniqueId, (EnsoData.EnsoLevelType)k, out var dst5);
                         song2.NotPlayed2P[k] = dst5.playCount <= 0;
                         song2.NotCleared2P[k] = dst4.crown < DataConst.CrownType.Silver;
                         song2.NotFullCombo2P[k] = dst5.crown < DataConst.CrownType.Gold;
@@ -1090,11 +1103,11 @@ public class CustomMusicLoaderPatch
         settings.rankMatchType = EnsoData.RankMatchType.None;
         settings.musicuid = selectedSongInfo.Id;
         settings.musicUniqueId = songUniqueId;
-        settings.genre = (EnsoData.SongGenre) selectedSongInfo.SongGenre;
+        settings.genre = (EnsoData.SongGenre)selectedSongInfo.SongGenre;
         settings.playerNum = 1;
         var player1Entry = settings.ensoPlayerSettings[0];
         player1Entry.neiroId = ensoMode.neiro;
-        player1Entry.courseType = (EnsoData.EnsoLevelType) selectedCourse;
+        player1Entry.courseType = (EnsoData.EnsoLevelType)selectedCourse;
         player1Entry.speed = ensoMode.speed;
         player1Entry.dron = ensoMode.dron;
         player1Entry.reverse = ensoMode.reverse;
@@ -1110,13 +1123,13 @@ public class CustomMusicLoaderPatch
         {
             var player2Entry = settings.ensoPlayerSettings[1];
             player2Entry.neiroId = ensoMode2P.neiro;
-            player2Entry.courseType = (EnsoData.EnsoLevelType) selectedCourse2P;
+            player2Entry.courseType = (EnsoData.EnsoLevelType)selectedCourse2P;
             player2Entry.speed = ensoMode2P.speed;
             player2Entry.dron = ensoMode2P.dron;
             player2Entry.reverse = ensoMode2P.reverse;
             player2Entry.randomlv = ensoMode2P.randomlv;
             player2Entry.special = ensoMode2P.special;
-            GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, 1, songUniqueId, (EnsoData.EnsoLevelType) selectedCourse2P, out var dst);
+            GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, 1, songUniqueId, (EnsoData.EnsoLevelType)selectedCourse2P, out var dst);
             player2Entry.hiScore = dst.normalHiScore.score;
             settings.playerNum = 2;
             settings.ensoPlayerSettings[1] = player2Entry;
@@ -1127,13 +1140,13 @@ public class CustomMusicLoaderPatch
         settings.isRandomSelect = selectedSongInfo.IsRandomSelect;
         settings.isDailyBonus = selectedSongInfo.IsDailyBonus;
         ensoMode.songUniqueId = settings.musicUniqueId;
-        ensoMode.level = (EnsoData.EnsoLevelType) selectedCourse;
+        ensoMode.level = (EnsoData.EnsoLevelType)selectedCourse;
 
         __instance.settings = settings;
         __instance.ensoMode = ensoMode;
         __instance.SetSaveDataEnsoMode(CourseSelect.PlayerType.Player1);
         ensoMode2P.songUniqueId = settings.musicUniqueId;
-        ensoMode2P.level = (EnsoData.EnsoLevelType) selectedCourse2P;
+        ensoMode2P.level = (EnsoData.EnsoLevelType)selectedCourse2P;
         __instance.ensoMode2P = ensoMode2P;
         __instance.SetSaveDataEnsoMode(CourseSelect.PlayerType.Player2);
 
@@ -1151,7 +1164,7 @@ public class CustomMusicLoaderPatch
         settings.voiceVolume = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MySoundManager.GetVolume(SoundManager.SoundType.Voice);
         settings.bgmVolume = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MySoundManager.GetVolume(SoundManager.SoundType.Bgm);
         settings.neiroVolume = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MySoundManager.GetVolume(SoundManager.SoundType.InGameNeiro);
-        settings.effectLevel = (EnsoData.EffectLevel) dst2.qualityLevel;
+        settings.effectLevel = (EnsoData.EffectLevel)dst2.qualityLevel;
         __instance.settings = settings;
 #if TAIKO_IL2CPP
         ensoDataManager.SetSettingsRemake(ref settings);
@@ -1204,20 +1217,20 @@ public class CustomMusicLoaderPatch
         TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.EnsoData.CopySettings(out var dst);
 #endif
         __instance.music_id = dst.musicuid;
-        __instance.genre = (int) dst.genre;
-        __instance.course_type = (int) dst.ensoPlayerSettings[0].courseType;
+        __instance.genre = (int)dst.genre;
+        __instance.course_type = (int)dst.ensoPlayerSettings[0].courseType;
         __instance.neiro_id = dst.ensoPlayerSettings[0].neiroId;
-        __instance.speed = (int) dst.ensoPlayerSettings[0].speed;
-        __instance.dron = (int) dst.ensoPlayerSettings[0].dron;
-        __instance.reverse = (int) dst.ensoPlayerSettings[0].reverse;
-        __instance.randomlv = (int) dst.ensoPlayerSettings[0].randomlv;
-        __instance.special = (int) dst.ensoPlayerSettings[0].special;
+        __instance.speed = (int)dst.ensoPlayerSettings[0].speed;
+        __instance.dron = (int)dst.ensoPlayerSettings[0].dron;
+        __instance.reverse = (int)dst.ensoPlayerSettings[0].reverse;
+        __instance.randomlv = (int)dst.ensoPlayerSettings[0].randomlv;
+        __instance.special = (int)dst.ensoPlayerSettings[0].special;
         PlayDataManager playData = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData;
         playData.GetEnsoMode(out var dst2);
-        __instance.sort_course = (int) dst2.songSortCourse;
-        __instance.sort_type = (int) dst2.songSortType;
-        __instance.sort_filter = (int) dst2.songFilterType;
-        __instance.sort_favorite = (int) dst2.songFilterTypeFavorite;
+        __instance.sort_course = (int)dst2.songSortCourse;
+        __instance.sort_type = (int)dst2.songSortType;
+        __instance.sort_filter = (int)dst2.songFilterType;
+        __instance.sort_favorite = (int)dst2.songFilterTypeFavorite;
         MusicDataInterface.MusicInfoAccesser[] array = TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.MusicData.musicInfoAccessers.ToArray();
 #if TAIKO_IL2CPP
         playData.GetMusicInfoExAllIl2cpp(0, out var dst3);
@@ -1296,7 +1309,7 @@ public class CustomMusicLoaderPatch
             return;
         }
 
-        int num = (int) levelType;
+        int num = (int)levelType;
         if (num is < 0 or >= 5)
             num = 0;
 
@@ -1304,7 +1317,7 @@ public class CustomMusicLoaderPatch
         var saveData = GetCustomSaveData().CustomTrackToEnsoRecordInfo;
         if (!saveData.TryGetValue(uniqueId, out var ensoData))
         {
-            ensoData = new EnsoRecordInfo[(int) EnsoData.EnsoLevelType.Num];
+            ensoData = new EnsoRecordInfo[(int)EnsoData.EnsoLevelType.Num];
             saveData[uniqueId] = ensoData;
         }
 
@@ -1323,7 +1336,7 @@ public class CustomMusicLoaderPatch
         for (int levelType = 0; levelType < __instance.selectedSongInfo.HighScores.Length; ++levelType)
         {
             EnsoRecordInfo dst;
-            GetPlayerRecordInfo(__instance.playDataManager, 0, song.UniqueId, (EnsoData.EnsoLevelType) levelType, out dst);
+            GetPlayerRecordInfo(__instance.playDataManager, 0, song.UniqueId, (EnsoData.EnsoLevelType)levelType, out dst);
             var highScore = __instance.selectedSongInfo.HighScores[levelType];
             highScore.hiScoreRecordInfos = dst.normalHiScore;
             highScore.crown = dst.crown;
@@ -1342,7 +1355,8 @@ public class CustomMusicLoaderPatch
             Animator iconCrown2 = __instance.diffCourseAnims[levelType].IconCrowns[1];
             if (__instance.status.Is2PActive)
             {
-                GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, 1, __instance.selectedSongInfo.UniqueId, (EnsoData.EnsoLevelType) levelType, out var dst);
+                GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, 1, __instance.selectedSongInfo.UniqueId,
+                    (EnsoData.EnsoLevelType)levelType, out var dst);
                 switch (dst.crown)
                 {
                     case DataConst.CrownType.Silver:
@@ -1376,7 +1390,8 @@ public class CustomMusicLoaderPatch
     [HarmonyWrapSafe]
     public static void UpdateDisplay_Postfix(CourseSelectScoreDisplay __instance, int musicUniqueId, EnsoData.EnsoLevelType levelType)
     {
-        GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, __instance.playerType == DataConst.PlayerType.Player_1 ? 0 : 1, musicUniqueId, levelType, out var dst);
+        GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, __instance.playerType == DataConst.PlayerType.Player_1 ? 0 : 1,
+            musicUniqueId, levelType, out var dst);
         var normalHiScore = dst.normalHiScore;
         for (int index = 0; index < 6; ++index)
         {
@@ -1387,19 +1402,19 @@ public class CustomMusicLoaderPatch
                     num = normalHiScore.score;
                     break;
                 case 1:
-                    num = (int) normalHiScore.excellent;
+                    num = (int)normalHiScore.excellent;
                     break;
                 case 2:
-                    num = (int) normalHiScore.good;
+                    num = (int)normalHiScore.good;
                     break;
                 case 3:
-                    num = (int) normalHiScore.bad;
+                    num = (int)normalHiScore.bad;
                     break;
                 case 4:
-                    num = (int) normalHiScore.combo;
+                    num = (int)normalHiScore.combo;
                     break;
                 case 5:
-                    num = (int) normalHiScore.renda;
+                    num = (int)normalHiScore.renda;
                     break;
             }
 
@@ -1420,7 +1435,7 @@ public class CustomMusicLoaderPatch
             int num = musicInfoAccesser.Stars[4] > 0 ? 5 : 4;
             for (int levelType = 0; levelType < num; ++levelType)
             {
-                GetPlayerRecordInfo(playData, playerId, musicInfoAccesser.UniqueId, (EnsoData.EnsoLevelType) levelType, out var dst);
+                GetPlayerRecordInfo(playData, playerId, musicInfoAccesser.UniqueId, (EnsoData.EnsoLevelType)levelType, out var dst);
                 switch (dst.crown)
                 {
                     case DataConst.CrownType.Silver:
@@ -1453,7 +1468,8 @@ public class CustomMusicLoaderPatch
 
         for (int levelType = 0; levelType < num; ++levelType)
         {
-            GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, playerId, musicUniqueId, (EnsoData.EnsoLevelType) levelType, out var dst);
+            GetPlayerRecordInfo(TaikoSingletonMonoBehaviour<CommonObjects>.Instance.MyDataManager.PlayData, playerId, musicUniqueId, (EnsoData.EnsoLevelType)levelType,
+                out var dst);
             __instance.bestScores[levelType].RootObject.SetValue(dst.normalHiScore.score);
         }
     }
@@ -1464,26 +1480,31 @@ public class CustomMusicLoaderPatch
     /// Save scores to custom save data
     /// </summary>
     [HarmonyPatch(typeof(PlayDataManager), "UpdatePlayerScoreRecordInfo",
-        new Type[] {typeof(int), typeof(int), typeof(int), typeof(EnsoData.EnsoLevelType), typeof(bool), typeof(DataConst.SpecialTypes), typeof(HiScoreRecordInfo), typeof(DataConst.ResultType), typeof(bool), typeof(DataConst.CrownType)})]
+        new Type[]
+        {
+            typeof(int), typeof(int), typeof(int), typeof(EnsoData.EnsoLevelType), typeof(bool), typeof(DataConst.SpecialTypes), typeof(HiScoreRecordInfo),
+            typeof(DataConst.ResultType), typeof(bool), typeof(DataConst.CrownType)
+        })]
     [HarmonyPrefix]
-    public static bool UpdatePlayerScoreRecordInfo(PlayDataManager __instance, int playerId, int charaIndex, int uniqueId, EnsoData.EnsoLevelType levelType, bool isSinuchi, DataConst.SpecialTypes spTypes, HiScoreRecordInfo record,
+    public static bool UpdatePlayerScoreRecordInfo(PlayDataManager __instance, int playerId, int charaIndex, int uniqueId, EnsoData.EnsoLevelType levelType, bool isSinuchi,
+        DataConst.SpecialTypes spTypes, HiScoreRecordInfo record,
         DataConst.ResultType resultType, bool savemode, DataConst.CrownType crownType)
     {
         if (!uniqueIdToSong.ContainsKey(uniqueId))
             return true;
 
-        int num = (int) levelType;
+        int num = (int)levelType;
         if (num is < 0 or >= 5)
             num = 0;
 
         var saveData = GetCustomSaveData().CustomTrackToEnsoRecordInfo;
         if (!saveData.TryGetValue(uniqueId, out var ensoData))
         {
-            ensoData = new EnsoRecordInfo[(int) EnsoData.EnsoLevelType.Num];
+            ensoData = new EnsoRecordInfo[(int)EnsoData.EnsoLevelType.Num];
             saveData[uniqueId] = ensoData;
         }
 
-        EnsoRecordInfo ensoRecordInfo = ensoData[(int) levelType];
+        EnsoRecordInfo ensoRecordInfo = ensoData[(int)levelType];
 #pragma warning disable Harmony003
         if (ensoRecordInfo.normalHiScore.score <= record.score)
         {
@@ -1498,14 +1519,14 @@ public class CustomMusicLoaderPatch
 
         if (crownType != DataConst.CrownType.Off)
         {
-            if (IsValueInRange((int) crownType, 0, 5) && ensoRecordInfo.crown <= crownType)
+            if (IsValueInRange((int)crownType, 0, 5) && ensoRecordInfo.crown <= crownType)
             {
                 ensoRecordInfo.crown = crownType;
                 ensoRecordInfo.cleared = crownType >= DataConst.CrownType.Silver;
             }
         }
 
-        ensoData[(int) levelType] = ensoRecordInfo;
+        ensoData[(int)levelType] = ensoRecordInfo;
 
         if (savemode && playerId == 0)
             SaveCustomData();
@@ -1546,7 +1567,7 @@ public class CustomMusicLoaderPatch
             for (int i = 0; i < __instance.SongList.Count; i++)
             {
 #if TAIKO_IL2CPP
-                var song = (SongSelectManager.Song) __instance.SongList[(Index) i];
+                var song = (SongSelectManager.Song)__instance.SongList[(Index)i];
 #elif TAIKO_MONO
                 var song = __instance.SongList[i];
 #endif
@@ -1758,20 +1779,20 @@ public class CustomMusicLoaderPatch
                 return testPath;
 
             // add every difficulty below this one
-            Difficulty difficultyEnum = (Difficulty) Enum.Parse(typeof(Difficulty), difficulty);
-            int difficultyInt = (int) difficultyEnum;
+            Difficulty difficultyEnum = (Difficulty)Enum.Parse(typeof(Difficulty), difficulty);
+            int difficultyInt = (int)difficultyEnum;
 
             var checkDifficulties = new System.Collections.Generic.List<Difficulty>();
 
-            for (int i = 1; i < (int) Difficulty.Count; i++)
+            for (int i = 1; i < (int)Difficulty.Count; i++)
             {
                 AddIfInRange(difficultyInt - i);
                 AddIfInRange(difficultyInt + i);
 
                 void AddIfInRange(int checkDifficulty)
                 {
-                    if (checkDifficulty is >= 0 and < (int) Difficulty.Count)
-                        checkDifficulties.Add((Difficulty) checkDifficulty);
+                    if (checkDifficulty is >= 0 and < (int)Difficulty.Count)
+                        checkDifficulties.Add((Difficulty)checkDifficulty);
                 }
             }
 
@@ -1804,7 +1825,7 @@ public class CustomMusicLoaderPatch
         Count,
     }
 
-    private static Difficulty[] AllDifficulties = (Difficulty[]) Enum.GetValues(typeof(Difficulty));
+    private static Difficulty[] AllDifficulties = (Difficulty[])Enum.GetValues(typeof(Difficulty));
 
     #endregion
 
@@ -1813,7 +1834,7 @@ public class CustomMusicLoaderPatch
     private static readonly Regex sheetNameRegex = new Regex("^song_(?<songName>.*?_custom_\\d*?)$");
     private static readonly Regex songFilePathRegex = new Regex("sound\\/(?<sheetName>.*?)\\.bin$");
 
-    
+
     [HarmonyPatch(typeof(Cryptgraphy), nameof(Cryptgraphy.ReadAllAesBytesAsyncInternal))]
     [HarmonyPrefix]
     [HarmonyWrapSafe]
@@ -1834,9 +1855,9 @@ public class CustomMusicLoaderPatch
             Log.LogError($"Cannot find song : {songName}");
             return true;
         }
-        
+
         var newPath = Path.Combine(songInstance.FolderPath, $"{sheetName.Replace(songName, songInstance.SongName)}.bin");
-        
+
         var bytes = File.ReadAllBytes(newPath);
         if (songInstance.areFilesGZipped)
         {
@@ -2191,7 +2212,7 @@ public class CustomMusicLoaderPatch
 
         public class ConversionItem
         {
-            [JsonIgnore] public const int CurrentVersion = 2;
+            [JsonIgnore] public const int CurrentVersion = 3;
             [JsonIgnore] public const int MaxAttempts = 3;
 
             [JsonProperty("f")] public string FolderName;

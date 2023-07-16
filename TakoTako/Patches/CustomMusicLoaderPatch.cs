@@ -176,6 +176,8 @@ public class CustomMusicLoaderPatch
                 }
             });
             var tjaPaths = Directory.GetFiles(MusicTrackDirectory, "*.tja", SearchOption.AllDirectories).Select(Path.GetDirectoryName).Distinct().ToList();
+            var tja2FumenConvertPath = GetTja2FumenPath();
+            Log.LogInfo($"Using {tja2FumenConvertPath} for generating TJAs");
             // convert / add TJA songs
             Parallel.ForEach(tjaPaths, new ParallelOptions()
             {
@@ -205,12 +207,10 @@ public class CustomMusicLoaderPatch
                         var pluginDirectory = @$"{Environment.CurrentDirectory}\BepInEx\plugins\{PluginInfo.PLUGIN_GUID}";
                         
                         var tjaConvertPath = @$"{pluginDirectory}\TJAConvert.exe";
-                        var tja2FumenConvertPath = GetTja2FumenPath();
                         
                         if (!File.Exists(tjaConvertPath) || string.IsNullOrWhiteSpace(tja2FumenConvertPath) || !File.Exists(tja2FumenConvertPath))
                             throw new Exception("Cannot find .exes in plugin folder");
 
-                        Log.LogInfo($"Using {tja2FumenConvertPath} for generating TJAs");
                         Log.LogInfo($"Converting {pathName}");
                         var info = new ProcessStartInfo()
                         {

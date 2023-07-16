@@ -73,22 +73,30 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Folder Include="Plugins\" />
         <Folder Include="References" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Executables\tja2fumen.exe" />
-        <None Remove="Executables\**" />
+        <None Remove="IncludedContent\tja2fumen.exe" />
+        <None Remove="IncludedContent\**" />
         <None Remove="Exes\**" />
+
+        <Compile Include="../TaikoUnityAssets\Assets\Scripts\**\*.cs">
+            <Link>UnityScripts\*</Link>
+        </Compile>
+        <Compile Update="..\TaikoUnityAssets\Assets\Scripts\ISongSelectInterop.cs">
+            <Link>Scripts\ISongSelectInterop.cs</Link>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="Executables\**" />
+        <Compile Remove="IncludedContent\**" />
         <Compile Remove="Exes\**" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Remove="Executables\**" />
+        <EmbeddedResource Remove="IncludedContent\**" />
         <EmbeddedResource Remove="Exes\**" />
     </ItemGroup>
 
@@ -98,7 +106,8 @@
 
     <Target Name="PostBuildCopy" AfterTargets="PostBuildEvent">
         <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
-        <Copy SourceFiles="$(ProjectDir)\Executables\tja2fumen.exe" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
-        <Copy SourceFiles="$(ProjectDir)\Executables\TJAConvert.exe" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
+        <Copy SourceFiles="$(ProjectDir)\IncludedContent\tja2fumen.exe" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
+        <Copy SourceFiles="$(ProjectDir)\IncludedContent\TJAConvert.exe" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
+        <Copy SourceFiles="$(ProjectDir)\IncludedContent\content" DestinationFolder="$(GameDir)\BepInEx\plugins\$(AssemblyName)" />
     </Target>
 </Project>

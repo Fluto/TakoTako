@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections;
+using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using Il2CppInterop.Runtime.Injection;
 using TakoTako.Patches;
 using UnityEngine;
+using Object = Il2CppSystem.Object;
 #if TAIKO_IL2CPP
 using BepInEx.Unity.IL2CPP.Utils;
 using BepInEx.Unity.IL2CPP;
@@ -26,6 +29,7 @@ namespace TakoTako
         public ConfigEntry<bool> ConfigDisableScreenChangeOnFocus;
         public ConfigEntry<bool> ConfigFixSignInScreen;
         public ConfigEntry<bool> ConfigEnableCustomSongs;
+        public ConfigEntry<bool> ConfigEnableSongSearch;
         public ConfigEntry<bool> ConfigEnableTaikoDrumSupport;
         public ConfigEntry<bool> ConfigTaikoDrumUseNintendoLayout;
         public ConfigEntry<bool> ConfigSkipDLCCheck;
@@ -118,6 +122,11 @@ namespace TakoTako
                 true,
                 "When true this will skip slow DLC checks");
 
+            ConfigEnableSongSearch = Config.Bind("General",
+                "EnableSongSearch",
+                true,
+                "When true this will enable a song search feature");
+            
             ConfigDisableScreenChangeOnFocus = Config.Bind("General",
                 "DisableScreenChangeOnFocus",
                 false,
@@ -164,6 +173,11 @@ namespace TakoTako
                 _harmony.PatchAll(typeof(CustomMusicLoaderPatch));
                 CustomMusicLoaderPatch.Setup(_harmony);
             }
+            
+            if (ConfigEnableSongSearch.Value)
+            {
+                PatchSongSearch();
+            }
         }
 
         public static MonoBehaviour GetMonoBehaviour() => TaikoSingletonMonoBehaviour<CommonObjects>.Instance;
@@ -175,6 +189,14 @@ namespace TakoTako
             #elif TAIKO_IL2CPP
             GetMonoBehaviour().StartCoroutine(enumerator);
             #endif
+        }
+        
+        private void PatchSongSearch()
+        {
+            ClassInjector.RegisterTypeInIl2Cpp<SongSearchUI>();
+            ClassInjector.RegisterTypeInIl2Cpp<SongSearchInjection>();
+
+            _harmony.PatchAll(typeof(SongSearchPatch));
         }
     }
 }
